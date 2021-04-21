@@ -32,6 +32,21 @@
  ****************************************************************************/
 
 /**
+ * Multicopter land detection trigger time
+ *
+ * Time it takes to go through all three lnad detection phases
+ * when all necessary conditions are constantly met.
+ *
+ * @unit s
+ * @min 0.1
+ * @max 10.0
+ * @decimal 1
+ *
+ * @group Land Detector
+ */
+PARAM_DEFINE_FLOAT(LNDMC_TRIG_TIME, 1.0f);
+
+/**
  * Multicopter max climb rate
  *
  * Maximum vertical velocity allowed in the landed state
