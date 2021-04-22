@@ -212,15 +212,15 @@ bool MulticopterLandDetector::_get_ground_contact_state()
 	// if we have a valid velocity setpoint and the vehicle is demanded to go down but no vertical movement present,
 	// we then can assume that the vehicle hit ground
 	if (_flag_control_climb_rate_enabled) {
-		vehicle_local_position_setpoint_s vehicle_local_position_setpoint;
+		vehicle_local_position_setpoint_s trejactory_setpoint;
 
-		if (_vehicle_local_position_setpoint_sub.update(&vehicle_local_position_setpoint)) {
+		if (_trajectory_setpoint_sub.update(&trejactory_setpoint)) {
 			// setpoints can briefly be NAN to signal resets, TODO: fix in multicopter position controller
-			const bool descend_vel_sp = PX4_ISFINITE(vehicle_local_position_setpoint.vz)
-						    && (vehicle_local_position_setpoint.vz >= land_speed_threshold);
+			const bool descend_vel_sp = PX4_ISFINITE(trejactory_setpoint.vz)
+						    && (trejactory_setpoint.vz >= land_speed_threshold);
 
-			const bool descend_acc_sp = PX4_ISFINITE(vehicle_local_position_setpoint.acceleration[2])
-						    && (vehicle_local_position_setpoint.acceleration[2] >= 100.f);
+			const bool descend_acc_sp = PX4_ISFINITE(trejactory_setpoint.acceleration[2])
+						    && (trejactory_setpoint.acceleration[2] >= 100.f);
 
 			_in_descend = descend_vel_sp || descend_acc_sp;
 		}
