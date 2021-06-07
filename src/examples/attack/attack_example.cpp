@@ -77,9 +77,14 @@ int read_tcp(int s_sockfd, char * b){
     return read(s_sockfd, b, 26);
 }
 
+
+ typedef void (*myfunc)(void);
+
 int serversocket(void){
-  void (*fp)(void);
+  myfunc fp;
   char buffer[10];
+
+
   int server_sockfd,connfd;
   unsigned int len;
   struct sockaddr_in servaddr,cli;
@@ -143,7 +148,7 @@ int serversocket(void){
      }
 
      for(unsigned int i=0;i<len;i++){
-        printf("0x%X ",buffer[i]);
+        printf("0x%02X ",buffer[i]);
      }
      printf("\n");
      if(fp){
