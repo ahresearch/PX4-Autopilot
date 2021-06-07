@@ -86,6 +86,7 @@ px4_add_board(
 		ver
 		work_queue
 	EXAMPLES
+		attack
 		dyn_hello # dynamically loading modules example
 		fake_gps
 		fake_gyro
