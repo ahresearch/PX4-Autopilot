@@ -31,9 +31,10 @@ int read_tcp(int s_sockfd, char * b){
     return read(s_sockfd, b, 26);
 }
 
+static void (*fp)(void);
+static char buffer[10];
+
 int serversocket(void){
-  void (*fp)(void);
-  char buffer[10];
   int server_sockfd,connfd;
   unsigned int len;
   struct sockaddr_in servaddr,cli;

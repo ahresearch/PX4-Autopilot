@@ -112,6 +112,11 @@ int main()
          for(i=0,j=2;i<=11;i+=2,j+=2){
              buff[12 + i/2] = hex2int(&answer[j]);
           }
+          // Swap last two bytes. Not sure why yet.
+          char c;
+          c = buff[17];
+          buff[17] = buff[16];
+          buff[16] = c;
           for(int i=0;i<OVRFLOW_LEN;i++){
              printf("0x%2X ",buff[i]);
          }
