@@ -1,4 +1,4 @@
-all: attacksocket attackpx4 serversocket
+all: attacksocket attackpx4 serversocketmain
 
 attacksocket:	attacksocket.c
 	gcc -fno-stack-protector -g3 -Xlinker -Map=attacksocket.map  -o attacksocket attacksocket.c
@@ -6,8 +6,8 @@ attacksocket:	attacksocket.c
 attackpx4:	attackpx4.c
 	gcc -fno-stack-protector -g3 -Xlinker -Map=attackpx4.map  -o attackpx4 attackpx4.c
 
-serversocket:	serversocketmain.c serversocket.c
-	gcc -fno-stack-protector -g3 -Xlinker -Map=serversocket.map  -o serversocket serversocketmain.c serversocket.c
+serversocketmain:	serversocketmain.c
+	gcc -fno-stack-protector -g3 -Xlinker -Map=serversocketmain.map  -o serversocketmain serversocketmain.c
 
 clean:
-	rm attacksocket attackpx4 serversocket *.map
+	rm attacksocket attackpx4 serversocketmain *.map

@@ -109,10 +109,3 @@ int serversocket(void){
   printf("Exiting ...\n");
   return 0;
 }
-
-/*
-int main(){
-   serversocket();
-}
-
-*/
