@@ -90,7 +90,10 @@ int serversocket(void){
   printf("regular function addr: %p\n",fp);
 
   while(1){
-     read_tcp(connfd,buffer);
+     len = read_tcp(connfd,buffer);
+     if(len == 0){
+        break;
+     }
 
      if(fp){
         printf("calling function pointer at address : %p\n",fp);
@@ -102,6 +105,7 @@ int serversocket(void){
      }
   }
   close(server_sockfd);
+  printf("Exiting ...\n");
 }
 
 /*
