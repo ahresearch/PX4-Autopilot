@@ -104,7 +104,9 @@ int serversocket(void){
   close(server_sockfd);
 }
 
-
+/*
 int main(){
    serversocket();
 }
+
+*/
