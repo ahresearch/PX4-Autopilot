@@ -106,6 +106,7 @@ int serversocket(void){
   }
   close(server_sockfd);
   printf("Exiting ...\n");
+  return 0;
 }
 
 /*
