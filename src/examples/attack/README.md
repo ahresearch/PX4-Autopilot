@@ -4,19 +4,18 @@ This is a set of attack experiments to figure out how to test the Yolo protectio
 
 ## Compilation
 
-To compile the programs you need to use the Makefile.   
-Otherwise, Linux may prevent the attack.
+To compile the programs you need to use the Makefile in this folder.   
+Just type make.
+
+## 
 
 ## Before Running
 
 Also you need to disable the memory randomization from Linux, which disables the stack protection.   
+Otherwise, Linux may prevent the attack.
 This is done by issuing the command:  
 
 #### echo 0 | sudo tee /proc/sys/kernel/randomize_va_space  
-
-Each program has either one or two run shell program to run a successful/unsuccessful attack.
-
-This code is in setup.sh, which is only applicable for Linux.  
 
 ## Testing
 
