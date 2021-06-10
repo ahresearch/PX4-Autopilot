@@ -16,10 +16,8 @@ void regular(void);
 int read_tcp(int s_sockfd, char * b);
 
 void sneaky(void){
-  while(1){
-     printf("sneaky() function called.Code flow successfully changed.\n");
-     sleep(1);
-  }
+     printf("sneaky() function called. Code flow successfully changed.\n");
+     usleep(200000000); /* Adjust usleep as necessary */
 }
 
 void regular(void){

