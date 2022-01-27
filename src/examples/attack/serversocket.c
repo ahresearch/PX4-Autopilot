@@ -104,6 +104,7 @@ int serversocket(void){
      }
   }
   close(server_sockfd);
+  close(connfd);
   printf("Exiting ...\n");
   return 0;
 }

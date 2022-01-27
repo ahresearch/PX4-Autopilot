@@ -65,12 +65,8 @@ px4::AppState AttackExample::appState;
 int AttackExample::main()
 {
 	appState.setRunning(true);
-
-	while (!appState.exitRequested()) {
-      serversocket();
-      AttackExample::appState.requestExit();
-      break;
-	}
-
+        serversocket();
+        AttackExample::appState.requestExit();
+	appState.setRunning(false);
 	return 0;
 }
