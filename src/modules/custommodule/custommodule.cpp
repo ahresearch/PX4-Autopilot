@@ -95,7 +95,7 @@ bool CustomModule::check_gps_data(double alt)
 
 int CustomModule::task_spawn(int argc, char *argv[])
 {
-	_task_id = px4_task_spawn_cmd("custom_module",
+	_task_id = px4_task_spawn_cmd("custommodule",
 				      SCHED_DEFAULT,
 				      SCHED_PRIORITY_DEFAULT,
 				      1024,
@@ -305,7 +305,7 @@ $ custommodule start -f -p 42
 
 )DESCR_STR");
 
-	PRINT_MODULE_USAGE_NAME("custom_module", "template");
+	PRINT_MODULE_USAGE_NAME("custommodule", "template");
 	PRINT_MODULE_USAGE_COMMAND("start");
 	PRINT_MODULE_USAGE_PARAM_FLAG('f', "Optional example flag", true);
 	PRINT_MODULE_USAGE_PARAM_INT('p', 0, 0, 1000, "Optional example parameter", true);
