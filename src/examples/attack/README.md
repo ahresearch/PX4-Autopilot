@@ -20,24 +20,37 @@ This is done by issuing the command:
 ## Testing
 
 ### Simple Example
- An example of buffer overflow through socket communication can be tested with stack4 and clientsock programs.  
+```
+ An example of buffer overflow through socket communication can be 
+tested with serversocketmain and attacksocket programs.  
 ./serversocketmain  
 ./attacksocket  
 Run serversocketmain in a terminal and run attacksocket from another terminal window.  
-At the attacksocket terminal you need to enter the address of the function you want to overwrite as printed by serversocket server program.  
-The server will print if the attack succeeds and will stay in the attacked state forever (or until we reboot the process).  
+Client Socket Created
+connected to the server..
+<N>ormal or <O>verflow run?, <Q> to quit:
+Normal will call the regular function.
+Overflow will ask for the address of the sneaky() functuon.
+You need to enter the address of the function you want to overwrite as printed 
+by serversocket server program.  
+The server will print if the attack succeeds and will stay in the attacked state 
+forever (or until we reboot the process).  
+```
 
 ### PX4 Example
+```
 Run px4:  
 make px4_sitl jmavsim  
 At the px4 promt type 'attack start' from the command prompt  
-This will start the attack server module and it will be ready to accept client socket buffer overflow attacks.  
+This will start the attack server module and it will be ready to accept 
+client socket buffer overflow attacks.  
 
 Run attack from another terminal:  
 attackpx4  
 Enter the address of the function at the attackpx4 terminal window.  
-A successful attack will run and there will be a print showing that the attack succeeded. The length of the attack is fixed but can be changed by changing the code in the px4 module.  
-
+A successful attack will run and there will be a print showing that the attack succeeded. 
+The length of the attack is fixed but can be changed by changing the code in the px4 module.  
+```
 
 Here is a typical run with a successful attack on the PX4 side run from one terminal window:
 
@@ -49,12 +62,27 @@ ______  __   __    ____
 | |     / /^\ \ \___  |
 \_|     \/   \/     |_/
 
+pxh> attack start
+
 attack starting.
 
 Attack Application Starting
 Server Socket created..
 Socket successfully bound..
 Server listening..
+
+
+
+The client initating the attack from a second terminal window looks like this :
+
+
+./attackpx4 
+Client Socket Created
+connected to the server..
+
+
+The px4 window will display this:
+
 server acccept the client...
 sneaky function addr: 0x5565ead8f420
 regular function addr: 0x5565ead8f410
@@ -63,16 +91,9 @@ function addr: 0x5565ead8f200
 calling function pointer at address : 0x5565ead8f420
 sneaky() function called. Code flow successfully changed.
 
-pxh> 
 
-```
-The client initating the attack from a second terminal window looks like this :
+On the client window enter the attack parameters:
 
-
-```
-./attackpx4 
-Client Socket Created
-connected to the server..
 <N>ormal or <O>verflow run?, <Q> to quit: O
 Answer O
 Overflow

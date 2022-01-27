@@ -1,0 +1,5 @@
+menuconfig EXAMPLES_ATTACK
+	bool "attack"
+	default n
+	---help---
+		Enable support for attack

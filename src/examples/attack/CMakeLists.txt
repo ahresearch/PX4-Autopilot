@@ -33,7 +33,7 @@
 
 px4_add_module(
 	MODULE examples__attack
-	MAIN attack 
+	MAIN attack
 	COMPILE_FLAGS
 	SRCS
 		attack_main.cpp
