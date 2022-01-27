@@ -3,19 +3,21 @@
 This is a set of attack experiments to figure out how to test the Yolo protection mechanisms.
 
 ## Compilation
-
+```
 To compile the programs you need to use the Makefile in this folder.   
-Just type make.
-
-## 
+Just type:
+make
+```
 
 ## Before Running
 
-Also you need to disable the memory randomization from Linux, which disables the stack protection.   
-Otherwise, Linux may prevent the attack.
+You need to disable the memory randomization from Linux, which disables the stack protection.   
+Otherwise, Linux may prevent the attack, because the address is randomized.
 This is done by issuing the command:  
 
 #### echo 0 | sudo tee /proc/sys/kernel/randomize_va_space  
+
+
 
 ## Testing
 
@@ -55,12 +57,6 @@ The length of the attack is fixed but can be changed by changing the code in the
 Here is a typical run with a successful attack on the PX4 side run from one terminal window:
 
 ```
-______  __   __    ____
-| ___ \ \ \ / /   /   |
-| |_/ /  \ V /   / /| |
-|  __/   /   \  / /_| |
-| |     / /^\ \ \___  |
-\_|     \/   \/     |_/
 
 pxh> attack start
 
@@ -76,7 +72,7 @@ Server listening..
 The client initating the attack from a second terminal window looks like this :
 
 
-./attackpx4 
+$ ./attackpx4 
 Client Socket Created
 connected to the server..
 
@@ -94,10 +90,13 @@ sneaky() function called. Code flow successfully changed.
 
 On the client window enter the attack parameters:
 
-<N>ormal or <O>verflow run?, <Q> to quit: O
+$ <N>ormal or <O>verflow run?, <Q> to quit: O
 Answer O
 Overflow
 Function address:0x5565ead8f420
 0x61 0x61 0x61 0x61 0x61 0x61 0x61 0x61 0x61 0x61 0x 0 0x 0 0x55 0x65 0xFFFFFFEA 0xFFFFFFD8 0x20 0xFFFFFFF4 
 
+After the client selects Q the socket connection closes and the PX4 app exits.
+It can be restarted again when needed:
+attack start
 ```
