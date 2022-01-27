@@ -34,7 +34,7 @@
 #include "VehicleGPSPosition.hpp"
 
 #include <px4_platform_common/log.h>
-#include <lib/ecl/geo/geo.h>
+#include <lib/geo/geo.h>
 #include <lib/mathlib/mathlib.h>
 
 namespace sensors
@@ -176,7 +176,7 @@ void VehicleGPSPosition::Publish(const sensor_gps_s &gps, uint8_t selected)
 
 void VehicleGPSPosition::PrintStatus()
 {
-	//PX4_INFO("selected GPS: %d", _gps_select_index);
+	//PX4_INFO_RAW("[vehicle_gps_position] selected GPS: %d\n", _gps_select_index);
 }
 
 }; // namespace sensors

@@ -48,7 +48,6 @@ echo "Installing PX4 general dependencies"
 sudo pacman -Sy --noconfirm --needed \
 	astyle \
 	base-devel \
-	ccache \
 	clang \
 	cmake \
 	cppcheck \
@@ -155,8 +154,7 @@ if [[ $INSTALL_SIM == "true" ]]; then
 			# fix VMWare 3D graphics acceleration for gazebo
 			exportline="export SVGA_VGPU10=0"
 
-			if grep -Fxq "$exportline" $HOME/.profile; then
-			else
+			if !grep -Fxq "$exportline" $HOME/.profile; then
 				echo $exportline >> $HOME/.profile;
 			fi
 		fi

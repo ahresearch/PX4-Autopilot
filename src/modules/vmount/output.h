@@ -41,7 +41,7 @@
 
 #include "common.h"
 #include <drivers/drv_hrt.h>
-#include <lib/ecl/geo/geo.h>
+#include <lib/geo/geo.h>
 #include <uORB/Publication.hpp>
 #include <uORB/Subscription.hpp>
 #include <uORB/topics/mount_orientation.h>
@@ -101,7 +101,7 @@ protected:
 	float _calculate_pitch(double lon, double lat, float altitude,
 			       const vehicle_global_position_s &global_position);
 
-	map_projection_reference_s _projection_reference = {}; ///< reference to convert (lon, lat) to local [m]
+	MapProjection _projection_reference{}; ///< class to convert (lon, lat) to local [m]
 
 	const OutputConfig &_config;
 

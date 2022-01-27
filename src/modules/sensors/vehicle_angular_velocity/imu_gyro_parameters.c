@@ -80,7 +80,7 @@ PARAM_DEFINE_FLOAT(IMU_GYRO_NF_BW, 20.0f);
 * @reboot_required true
 * @group Sensors
 */
-PARAM_DEFINE_FLOAT(IMU_GYRO_CUTOFF, 30.0f);
+PARAM_DEFINE_FLOAT(IMU_GYRO_CUTOFF, 40.0f);
 
 /**
 * Gyro control data maximum publication rate (inner loop rate)
@@ -122,7 +122,7 @@ PARAM_DEFINE_INT32(IMU_GYRO_RATEMAX, 400);
 * @reboot_required true
 * @group Sensors
 */
-PARAM_DEFINE_FLOAT(IMU_DGYRO_CUTOFF, 20.0f);
+PARAM_DEFINE_FLOAT(IMU_DGYRO_CUTOFF, 30.0f);
 
 /**
 * IMU gyro dynamic notch filtering
@@ -135,4 +135,26 @@ PARAM_DEFINE_FLOAT(IMU_DGYRO_CUTOFF, 20.0f);
 * @bit 0 ESC RPM
 * @bit 1 FFT
 */
-PARAM_DEFINE_INT32(IMU_GYRO_DYN_NF, 0);
+PARAM_DEFINE_INT32(IMU_GYRO_DNF_EN, 0);
+
+/**
+* IMU gyro ESC notch filter bandwidth
+*
+* Bandwidth per notch filter when using dynamic notch filtering with ESC RPM.
+*
+* @group Sensors
+* @min 5
+* @max 30
+*/
+PARAM_DEFINE_FLOAT(IMU_GYRO_DNF_BW, 15.f);
+
+/**
+* IMU gyro dynamic notch filter harmonics
+*
+* ESC RPM number of harmonics (multiples of RPM) for ESC RPM dynamic notch filtering.
+*
+* @group Sensors
+* @min 1
+* @max 7
+*/
+PARAM_DEFINE_INT32(IMU_GYRO_DNF_HMC, 3);

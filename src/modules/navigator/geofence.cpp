@@ -45,8 +45,9 @@
 
 #include <dataman/dataman.h>
 #include <drivers/drv_hrt.h>
-#include <lib/ecl/geo/geo.h>
+#include <lib/geo/geo.h>
 #include <systemlib/mavlink_log.h>
+#include <px4_platform_common/events.h>
 
 #include "navigator.h"
 
@@ -239,8 +240,11 @@ bool Geofence::isCloserThanMaxDistToHome(double lat, double lon, float altitude)
 
 		if (max_horizontal_distance > FLT_EPSILON && (dist_xy > max_horizontal_distance)) {
 			if (hrt_elapsed_time(&_last_horizontal_range_warning) > GEOFENCE_RANGE_WARNING_LIMIT) {
-				mavlink_log_critical(_navigator->get_mavlink_log_pub(), "Maximum distance from home reached (%.5f)",
+				mavlink_log_critical(_navigator->get_mavlink_log_pub(), "Maximum distance from home reached (%.5f)\t",
 						     (double)max_horizontal_distance);
+				events::send<float>(events::ID("navigator_geofence_max_dist_from_home"), {events::Log::Critical, events::LogInternal::Warning},
+						    "Geofence: maximum distance from home reached ({1:.0m})",
+						    max_horizontal_distance);
 				_last_horizontal_range_warning = hrt_absolute_time();
 			}
 
@@ -264,8 +268,11 @@ bool Geofence::isBelowMaxAltitude(float altitude)
 
 		if (max_vertical_distance > FLT_EPSILON && (dist_z > max_vertical_distance)) {
 			if (hrt_elapsed_time(&_last_vertical_range_warning) > GEOFENCE_RANGE_WARNING_LIMIT) {
-				mavlink_log_critical(_navigator->get_mavlink_log_pub(), "Maximum altitude above home reached (%.5f)",
+				mavlink_log_critical(_navigator->get_mavlink_log_pub(), "Maximum altitude above home reached (%.5f)\t",
 						     (double)max_vertical_distance);
+				events::send<float>(events::ID("navigator_geofence_max_alt_from_home"), {events::Log::Critical, events::LogInternal::Warning},
+						    "Geofence: maximum altitude above home reached ({1:.0m_v})",
+						    max_vertical_distance);
 				_last_vertical_range_warning = hrt_absolute_time();
 			}
 
@@ -440,13 +447,13 @@ bool Geofence::insideCircle(const PolygonInfo &polygon, double lat, double lon, 
 		return false;
 	}
 
-	if (!map_projection_initialized(&_projection_reference)) {
-		map_projection_init(&_projection_reference, lat, lon);
+	if (!_projection_reference.isInitialized()) {
+		_projection_reference.initReference(lat, lon);
 	}
 
 	float x1, y1, x2, y2;
-	map_projection_project(&_projection_reference, lat, lon, &x1, &y1);
-	map_projection_project(&_projection_reference, circle_point.lat, circle_point.lon, &x2, &y2);
+	_projection_reference.project(lat, lon, x1, y1);
+	_projection_reference.project(circle_point.lat, circle_point.lon, x2, y2);
 	float dx = x1 - x2, dy = y1 - y2;
 	return dx * dx + dy * dy < circle_point.circle_radius * circle_point.circle_radius;
 }
@@ -530,8 +537,7 @@ Geofence::loadFromFile(const char *filename)
 				}
 			}
 
-			if (dm_write(DM_KEY_FENCE_POINTS, pointCounter + 1, DM_PERSIST_POWER_ON_RESET, &vertex,
-				     sizeof(vertex)) != sizeof(vertex)) {
+			if (dm_write(DM_KEY_FENCE_POINTS, pointCounter + 1, &vertex, sizeof(vertex)) != sizeof(vertex)) {
 				goto error;
 			}
 
@@ -553,7 +559,8 @@ Geofence::loadFromFile(const char *filename)
 
 	/* Check if import was successful */
 	if (gotVertical && pointCounter > 2) {
-		mavlink_log_info(_navigator->get_mavlink_log_pub(), "Geofence imported");
+		mavlink_log_info(_navigator->get_mavlink_log_pub(), "Geofence imported\t");
+		events::send(events::ID("navigator_geofence_imported"), events::Log::Info, "Geofence imported");
 		rc = PX4_OK;
 
 		/* do a second pass, now that we know the number of vertices */
@@ -563,18 +570,17 @@ Geofence::loadFromFile(const char *filename)
 			if (dm_read(DM_KEY_FENCE_POINTS, seq, &mission_fence_point, sizeof(mission_fence_point_s)) ==
 			    sizeof(mission_fence_point_s)) {
 				mission_fence_point.vertex_count = pointCounter;
-				dm_write(DM_KEY_FENCE_POINTS, seq, DM_PERSIST_POWER_ON_RESET, &mission_fence_point,
-					 sizeof(mission_fence_point_s));
+				dm_write(DM_KEY_FENCE_POINTS, seq, &mission_fence_point, sizeof(mission_fence_point_s));
 			}
 		}
 
 		mission_stats_entry_s stats;
 		stats.num_items = pointCounter;
-		rc = dm_write(DM_KEY_FENCE_POINTS, 0, DM_PERSIST_POWER_ON_RESET, &stats, sizeof(mission_stats_entry_s));
+		rc = dm_write(DM_KEY_FENCE_POINTS, 0, &stats, sizeof(mission_stats_entry_s));
 
 	} else {
-		PX4_ERR("Geofence: import error");
-		mavlink_log_critical(_navigator->get_mavlink_log_pub(), "Geofence import error");
+		mavlink_log_critical(_navigator->get_mavlink_log_pub(), "Geofence: import error\t");
+		events::send(events::ID("navigator_geofence_import_failed"), events::Log::Error, "Geofence: import error");
 	}
 
 	updateFence();

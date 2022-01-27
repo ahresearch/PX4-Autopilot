@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (c) 2015 PX4 Development Team. All rights reserved.
+ *   Copyright (c) 2015, 2021 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -48,6 +48,7 @@
 #include <drivers/drv_pwm_output.h>
 
 struct Params {
+	int32_t ctrl_alloc;
 	int32_t idle_pwm_mc;			// pwm value for idle in mc mode
 	int32_t vtol_motor_id;
 	int32_t vtol_type;
@@ -70,13 +71,14 @@ struct Params {
 	int32_t fw_motors_off;			/**< bitmask of all motors that should be off in fixed wing mode */
 	int32_t diff_thrust;
 	float diff_thrust_scale;
-	float down_pitch_max;
+	float pitch_min_rad;
+	float land_pitch_min_rad;
 	float forward_thrust_scale;
 	float dec_to_pitch_ff;
 	float dec_to_pitch_i;
 	float back_trans_dec_sp;
 	bool vt_mc_on_fmu;
-	int vt_forward_thrust_enable_mode;
+	int32_t vt_forward_thrust_enable_mode;
 	float mpc_land_alt1;
 	float mpc_land_alt2;
 };
@@ -187,6 +189,7 @@ public:
 	 */
 	float pusher_assist();
 
+	virtual void blendThrottleAfterFrontTransition(float scale) {};
 
 	mode get_mode() {return _vtol_mode;}
 
@@ -194,7 +197,6 @@ public:
 
 	virtual void parameters_update() = 0;
 
-protected:
 	VtolAttitudeControl *_attc;
 	mode _vtol_mode;
 
@@ -216,6 +218,11 @@ protected:
 	struct tecs_status_s				*_tecs_status;
 	struct vehicle_land_detected_s			*_land_detected;
 
+	struct vehicle_torque_setpoint_s 		*_torque_setpoint_0;
+	struct vehicle_torque_setpoint_s 		*_torque_setpoint_1;
+	struct vehicle_thrust_setpoint_s 		*_thrust_setpoint_0;
+	struct vehicle_thrust_setpoint_s 		*_thrust_setpoint_1;
+
 	struct Params 					*_params;
 
 	bool _flag_idle_mc = false;		//false = "idle is set for fixed wing mode"; true = "idle is set for multicopter mode"
@@ -228,6 +235,7 @@ protected:
 
 	// motors spinning up or cutting too fast when doing transitions.
 	float _thrust_transition = 0.0f;	// thrust value applied during a front transition (tailsitter & tiltrotor only)
+	float _last_thr_in_fw_mode = 0.0f;
 
 	float _ra_hrate = 0.0f;			// rolling average on height rate for quadchute condition
 	float _ra_hrate_sp = 0.0f;		// rolling average on height rate setpoint for quadchute condition
@@ -247,6 +255,7 @@ protected:
 
 	float _accel_to_pitch_integ = 0;
 
+	bool _quadchute_command_treated{false};
 
 
 	/**
@@ -275,6 +284,8 @@ protected:
 
 private:
 
+
+	hrt_abstime _throttle_blend_start_ts{0};	// time at which we start blending between transition throttle and fixed wing throttle
 
 	/**
 	 * @brief      Stores the max pwm values given by the system.
@@ -314,6 +325,9 @@ private:
 	bool set_motor_state(const motor_state target_state, const int32_t channel_bitmap,  const int value);
 
 	void resetAccelToPitchPitchIntegrator() { _accel_to_pitch_integ = 0.f; }
+	bool shouldBlendThrottleAfterFrontTransition() { return _throttle_blend_start_ts != 0; };
+
+	void stopBlendingThrottleAfterFrontTransition() { _throttle_blend_start_ts = 0; }
 
 };
 

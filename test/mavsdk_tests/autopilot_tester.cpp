@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (c) 2020 PX4 Development Team. All rights reserved.
+ *   Copyright (c) 2021 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -62,9 +62,9 @@ void AutopilotTester::connect(const std::string uri)
 
 	std::cout << time_str() << "Waiting for system connect" << std::endl;
 	REQUIRE(poll_condition_with_timeout(
-	[this]() { return _mavsdk.is_connected(); }, std::chrono::seconds(25)));
+	[this]() { return _mavsdk.systems().size() > 0; }, std::chrono::seconds(25)));
 
-	auto &system = _mavsdk.system();
+	auto system = _mavsdk.systems().at(0);
 
 	_action.reset(new Action(system));
 	_failure.reset(new Failure(system));
@@ -98,7 +98,6 @@ void AutopilotTester::wait_until_ready_local_position_only()
 			(_telemetry->health().is_gyrometer_calibration_ok &&
 			 _telemetry->health().is_accelerometer_calibration_ok &&
 			 _telemetry->health().is_magnetometer_calibration_ok &&
-			 _telemetry->health().is_level_calibration_ok &&
 			 _telemetry->health().is_local_position_ok);
 	}, std::chrono::seconds(20)));
 }
@@ -141,6 +140,22 @@ void AutopilotTester::set_height_source(AutopilotTester::HeightSource height_sou
 
 	case HeightSource::Gps:
 		CHECK(_param->set_param_int("EKF2_HGT_MODE", 1) == Param::Result::Success);
+	}
+}
+
+void AutopilotTester::set_rc_loss_exception(AutopilotTester::RcLossException mask)
+{
+	switch (mask) {
+	case RcLossException::Mission:
+		CHECK(_param->set_param_int("COM_RCL_EXCEPT", 1 << 0) == Param::Result::Success);
+		break;
+
+	case RcLossException::Hold:
+		CHECK(_param->set_param_int("COM_RCL_EXCEPT", 1 << 1) == Param::Result::Success);
+		break;
+
+	case RcLossException::Offboard:
+		CHECK(_param->set_param_int("COM_RCL_EXCEPT", 1 << 2) == Param::Result::Success);
 	}
 }
 
@@ -221,7 +236,9 @@ void AutopilotTester::execute_mission()
 	std::promise<void> prom;
 	auto fut = prom.get_future();
 
-	REQUIRE(_mission->start_mission() == Mission::Result::Success);
+
+	REQUIRE(poll_condition_with_timeout(
+	[this]() { return _mission->start_mission() == Mission::Result::Success; }, std::chrono::seconds(3)));
 
 	// TODO: Adapt time limit based on mission size, flight speed, sim speed factor, etc.
 
@@ -338,9 +355,6 @@ void AutopilotTester::load_qgc_mission_raw_and_move_here(const std::string &plan
 
 void AutopilotTester::execute_mission_raw()
 {
-	std::promise<void> prom;
-	auto fut = prom.get_future();
-
 	REQUIRE(_mission->start_mission() == Mission::Result::Success);
 
 	// TODO: Adapt time limit based on mission size, flight speed, sim speed factor, etc.
@@ -663,7 +677,7 @@ void AutopilotTester::move_mission_raw_here(std::vector<MissionRaw::MissionItem>
 	REQUIRE(std::isfinite(position.longitude_deg));
 
 	auto offset_x = mission_items[0].x - static_cast<int32_t>(1e7 * position.latitude_deg);
-	auto offset_y = mission_items[1].y - static_cast<int32_t>(1e7 * position.longitude_deg);
+	auto offset_y = mission_items[0].y - static_cast<int32_t>(1e7 * position.longitude_deg);
 
 	for (auto &item : mission_items) {
 		if (item.frame == 3) { // MAV_FRAME_GLOBAL_RELATIVE_ALT
@@ -688,7 +702,7 @@ void AutopilotTester::report_speed_factor()
 					std::cout << " (set: " << speed_factor.value() << ')';
 				}
 
-				std::cout << '\n';
+				std::cout << std::endl;
 			}
 		}
 

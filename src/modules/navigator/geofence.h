@@ -45,7 +45,7 @@
 #include <lib/mathlib/mathlib.h>
 #include <px4_platform_common/module_params.h>
 #include <drivers/drv_hrt.h>
-#include <lib/ecl/geo/geo.h>
+#include <lib/geo/geo.h>
 #include <px4_platform_common/defines.h>
 #include <uORB/Subscription.hpp>
 #include <uORB/topics/home_position.h>
@@ -173,7 +173,7 @@ private:
 	PolygonInfo *_polygons{nullptr};
 	int _num_polygons{0};
 
-	map_projection_reference_s _projection_reference = {}; ///< reference to convert (lon, lat) to local [m]
+	MapProjection _projection_reference{}; ///< class to convert (lon, lat) to local [m]
 
 	DEFINE_PARAMETERS(
 		(ParamInt<px4::params::GF_ACTION>) _param_gf_action,

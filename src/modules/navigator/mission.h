@@ -105,6 +105,8 @@ public:
 	void set_execution_mode(const uint8_t mode);
 private:
 
+	void mission_init();
+
 	/**
 	 * Update mission topic
 	 */
@@ -219,11 +221,6 @@ private:
 	bool need_to_reset_mission();
 
 	/**
-	 * Project current location with heading to far away location and fill setpoint.
-	 */
-	void generate_waypoint_from_heading(struct position_setpoint_s *setpoint, float yaw);
-
-	/**
 	 * Find and store the index of the landing sequence (DO_LAND_START)
 	 */
 	bool find_mission_land_start();
@@ -281,7 +278,6 @@ private:
 		WORK_ITEM_TYPE_TAKEOFF,		/**< takeoff before moving to waypoint */
 		WORK_ITEM_TYPE_MOVE_TO_LAND,	/**< move to land waypoint before descent */
 		WORK_ITEM_TYPE_ALIGN,		/**< align for next waypoint */
-		WORK_ITEM_TYPE_CMD_BEFORE_MOVE,
 		WORK_ITEM_TYPE_TRANSITON_AFTER_TAKEOFF,
 		WORK_ITEM_TYPE_MOVE_TO_LAND_AFTER_TRANSITION,
 		WORK_ITEM_TYPE_PRECISION_LAND

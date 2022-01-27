@@ -127,15 +127,15 @@ protected:
 	virtual bool _get_freefall_state() { return false; }
 
 	/**
-	 *  @return maximum altitude that can be reached
-	 */
-	virtual float _get_max_altitude() { return INFINITY; }
-
-	/**
 	 *  @return true if vehicle could be in ground effect (close to ground)
 	 */
 	virtual bool _get_ground_effect_state() { return false; }
 
+	virtual bool _get_in_descend() { return false; }
+	virtual bool _get_has_low_throttle() { return false; }
+	virtual bool _get_horizontal_movement() { return false; }
+	virtual bool _get_vertical_movement() { return false; }
+	virtual bool _get_close_to_ground_or_skipped_check() {  return false; }
 	virtual void _set_hysteresis_factor(const int factor) = 0;
 
 	systemlib::Hysteresis _freefall_hysteresis{false};
@@ -158,7 +158,6 @@ private:
 
 	vehicle_land_detected_s _land_detected = {
 		.timestamp = 0,
-		.alt_max = -1.0f,
 		.freefall = false,
 		.ground_contact = true,
 		.maybe_landed = true,
@@ -167,8 +166,6 @@ private:
 
 	hrt_abstime _takeoff_time{0};
 	hrt_abstime _total_flight_time{0};	///< total vehicle flight time in microseconds
-
-	bool _high_hysteresis_active{false};
 
 	perf_counter_t _cycle_perf{perf_alloc(PC_ELAPSED, MODULE_NAME": cycle")};
 

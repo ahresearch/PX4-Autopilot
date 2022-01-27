@@ -32,6 +32,22 @@
  ****************************************************************************/
 
 /**
+ * Multicopter land detection trigger time
+ *
+ * Total time it takes to go through all three land detection stages:
+ * ground contact, maybe landed, landed
+ * when all necessary conditions are constantly met.
+ *
+ * @unit s
+ * @min 0.1
+ * @max 10.0
+ * @decimal 1
+ *
+ * @group Land Detector
+ */
+PARAM_DEFINE_FLOAT(LNDMC_TRIG_TIME, 1.0f);
+
+/**
  * Multicopter max climb rate
  *
  * Maximum vertical velocity allowed in the landed state
@@ -97,4 +113,4 @@ PARAM_DEFINE_FLOAT(LNDMC_ALT_MAX, -1.0f);
  * @group Land Detector
  *
  */
-PARAM_DEFINE_FLOAT(LNDMC_ALT_GND, -1.0f);
+PARAM_DEFINE_FLOAT(LNDMC_ALT_GND, 2.f);

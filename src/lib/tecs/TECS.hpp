@@ -41,7 +41,13 @@
 
 #include <mathlib/mathlib.h>
 #include <matrix/math.hpp>
-#include <lib/ecl/AlphaFilter/AlphaFilter.hpp>
+#include <lib/mathlib/math/filter/AlphaFilter.hpp>
+
+#include <uORB/Publication.hpp>
+#include <uORB/topics/tecs_status.h>
+#include <uORB/uORB.h>
+#include <motion_planning/VelocitySmoothing.hpp>
+#include <motion_planning/ManualVelocitySmoothingZ.hpp>
 
 class TECS
 {
@@ -84,7 +90,7 @@ public:
 	void update_pitch_throttle(float pitch, float baro_altitude, float hgt_setpoint,
 				   float EAS_setpoint, float equivalent_airspeed, float eas_to_tas, bool climb_out_setpoint, float pitch_min_climbout,
 				   float throttle_min, float throttle_setpoint_max, float throttle_cruise,
-				   float pitch_limit_min, float pitch_limit_max);
+				   float pitch_limit_min, float pitch_limit_max, float target_climbrate, float target_sinkrate, float hgt_rate_sp = NAN);
 
 	float get_throttle_setpoint() { return _last_throttle_setpoint; }
 	float get_pitch_setpoint() { return _last_pitch_setpoint; }
@@ -114,6 +120,7 @@ public:
 
 	void set_equivalent_airspeed_max(float airspeed) { _equivalent_airspeed_max = airspeed; }
 	void set_equivalent_airspeed_min(float airspeed) { _equivalent_airspeed_min = airspeed; }
+	void set_equivalent_airspeed_cruise(float airspeed) { _equivalent_airspeed_cruise = airspeed; }
 
 	void set_pitch_damping(float damping) { _pitch_damping_gain = damping; }
 	void set_vertical_accel_limit(float limit) { _vert_accel_limit = limit; }
@@ -138,11 +145,12 @@ public:
 	uint64_t timestamp() { return _pitch_update_timestamp; }
 	ECL_TECS_MODE tecs_mode() { return _tecs_mode; }
 
-	float hgt_setpoint_adj() { return _hgt_setpoint_adj; }
+	float hgt_setpoint() { return _hgt_setpoint; }
 	float vert_pos_state() { return _vert_pos_state; }
 
 	float TAS_setpoint_adj() { return _TAS_setpoint_adj; }
 	float tas_state() { return _tas_state; }
+	float getTASInnovation() { return _tas_innov; }
 
 	float hgt_rate_setpoint() { return _hgt_rate_setpoint; }
 	float vert_vel_state() { return _vert_vel_state; }
@@ -150,6 +158,7 @@ public:
 	float get_EAS_setpoint() { return _EAS_setpoint; };
 	float TAS_rate_setpoint() { return _TAS_rate_setpoint; }
 	float speed_derivative() { return _tas_rate_filtered; }
+	float speed_derivative_raw() { return _tas_rate_raw; }
 
 	float STE_error() { return _STE_error; }
 	float STE_rate_error() { return _STE_rate_error; }
@@ -185,11 +194,7 @@ public:
 	 */
 	void handle_alt_step(float delta_alt, float altitude)
 	{
-		// add height reset delta to all variables involved
-		// in filtering the demanded height
-		_hgt_setpoint_in_prev += delta_alt;
-		_hgt_setpoint_prev += delta_alt;
-		_hgt_setpoint_adj_prev += delta_alt;
+		_hgt_setpoint += delta_alt;
 
 		// reset height states
 		_vert_pos_state = altitude;
@@ -197,6 +202,9 @@ public:
 	}
 
 private:
+
+	static constexpr float _jerk_max =
+		1000.0f;	// maximum jerk for creating height rate trajectories, we want infinite jerk so set a high value
 
 	enum ECL_TECS_MODE _tecs_mode {ECL_TECS_MODE_NORMAL};
 
@@ -223,6 +231,7 @@ private:
 	float _airspeed_error_gain{0.1f};				///< airspeed error inverse time constant [1/s]
 	float _equivalent_airspeed_min{3.0f};				///< equivalent airspeed demand lower limit (m/sec)
 	float _equivalent_airspeed_max{30.0f};				///< equivalent airspeed demand upper limit (m/sec)
+	float _equivalent_airspeed_cruise{15.0f};			///< equivalent cruise airspeed for airspeed less mode (m/sec)
 	float _throttle_slewrate{0.0f};					///< throttle demand slew rate limit (1/sec)
 	float _STE_rate_time_const{0.1f};				///< filter time constant for specific total energy rate (damping path) (s)
 	float _speed_derivative_time_const{0.01f};			///< speed derivative filter time constant (s)
@@ -233,6 +242,7 @@ private:
 	float _vert_pos_state{0.0f};					///< complimentary filter state - height (m)
 	float _tas_rate_state{0.0f};					///< complimentary filter state - true airspeed first derivative (m/sec**2)
 	float _tas_state{0.0f};						///< complimentary filter state - true airspeed (m/sec)
+	float _tas_innov{0.0f};						///< complimentary filter true airspeed innovation (m/sec)
 
 	// controller states
 	float _throttle_integ_state{0.0f};				///< throttle integrator state
@@ -254,10 +264,6 @@ private:
 
 	// height demand calculations
 	float _hgt_setpoint{0.0f};					///< demanded height tracked by the TECS algorithm (m)
-	float _hgt_setpoint_in_prev{0.0f};				///< previous value of _hgt_setpoint after noise filtering (m)
-	float _hgt_setpoint_prev{0.0f};					///< previous value of _hgt_setpoint after noise filtering and rate limiting (m)
-	float _hgt_setpoint_adj{0.0f};					///< demanded height used by the control loops after all filtering has been applied (m)
-	float _hgt_setpoint_adj_prev{0.0f};				///< value of _hgt_setpoint_adj from previous frame (m)
 	float _hgt_rate_setpoint{0.0f};					///< demanded climb rate tracked by the TECS algorithm
 
 	// vehicle physical limits
@@ -313,9 +319,10 @@ private:
 	void _update_speed_setpoint();
 
 	/**
-	 * Update the desired height
+	 * Calculate desired height rate from altitude demand
 	 */
-	void _update_height_setpoint(float desired, float state);
+	void runAltitudeControllerSmoothVelocity(float alt_sp_amsl_m, float target_climbrate_m_s, float target_sinkrate_m_s,
+			float alt_amsl);
 
 	/**
 	 * Detect if the system is not capable of maintaining airspeed
@@ -342,6 +349,11 @@ private:
 	 */
 	void _update_pitch_setpoint();
 
+	void _updateTrajectoryGenerationConstraints();
+
+	void _calculateHeightRateSetpoint(float altitude_sp_amsl, float height_rate_sp, float target_climbrate,
+					  float target_sinkrate, float altitude_amsl);
+
 	/**
 	 * Initialize the controller
 	 */
@@ -358,5 +370,10 @@ private:
 	AlphaFilter<float> _STE_rate_error_filter;
 
 	AlphaFilter<float> _TAS_rate_filter;
+
+	VelocitySmoothing
+	_alt_control_traj_generator;	// generates height rate and altitude setpoint trajectory when altitude is commanded
+	ManualVelocitySmoothingZ
+	_velocity_control_traj_generator;	// generates height rate and altitude setpoint trajectory when height rate is commanded
 
 };

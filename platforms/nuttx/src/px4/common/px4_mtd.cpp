@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (c) 2020 PX4 Development Team. All rights reserved.
+ *   Copyright (c) 2020, 2021 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -49,6 +49,7 @@
 #include <px4_platform_common/log.h>
 #include <px4_platform_common/spi.h>
 
+#include <inttypes.h>
 #include <errno.h>
 #include <stdbool.h>
 #include "systemlib/px4_macros.h"
@@ -73,23 +74,27 @@ static int ramtron_attach(mtd_instance_s &instance)
 	return ENXIO;
 #else
 
-	/* initialize the right spi */
-	struct spi_dev_s *spi = px4_spibus_initialize(px4_find_spi_bus(instance.devid));
+	/* start the RAMTRON driver, attempt 10 times */
 
-	if (spi == nullptr) {
-		PX4_ERR("failed to locate spi bus");
-		return -ENXIO;
-	}
+	int spi_speed_mhz = 10;
 
-	/* this resets the spi bus, set correct bus speed again */
-	SPI_SETFREQUENCY(spi, 10 * 1000 * 1000);
-	SPI_SETBITS(spi, 8);
-	SPI_SETMODE(spi, SPIDEV_MODE3);
-	SPI_SELECT(spi, instance.devid, false);
+	for (int i = 0; i < 10; i++) {
+		/* initialize the right spi */
+		struct spi_dev_s *spi = px4_spibus_initialize(px4_find_spi_bus(instance.devid));
 
-	/* start the RAMTRON driver, attempt 5 times */
+		if (spi == nullptr) {
+			PX4_ERR("failed to locate spi bus");
+			return -ENXIO;
+		}
 
-	for (int i = 0; i < 5; i++) {
+		/* this resets the spi bus, set correct bus speed again */
+		SPI_LOCK(spi, true);
+		SPI_SETFREQUENCY(spi, spi_speed_mhz * 1000 * 1000);
+		SPI_SETBITS(spi, 8);
+		SPI_SETMODE(spi, SPIDEV_MODE3);
+		SPI_SELECT(spi, instance.devid, false);
+		SPI_LOCK(spi, false);
+
 		instance.mtd_dev = ramtron_initialize(spi);
 
 		if (instance.mtd_dev) {
@@ -100,6 +105,10 @@ static int ramtron_attach(mtd_instance_s &instance)
 
 			break;
 		}
+
+		// try reducing speed for next attempt
+		spi_speed_mhz--;
+		px4_usleep(10000);
 	}
 
 	/* if last attempt is still unsuccessful, abort */
@@ -108,7 +117,7 @@ static int ramtron_attach(mtd_instance_s &instance)
 		return -EIO;
 	}
 
-	int ret = instance.mtd_dev->ioctl(instance.mtd_dev, MTDIOC_SETSPEED, (unsigned long)10 * 1000 * 1000);
+	int ret = instance.mtd_dev->ioctl(instance.mtd_dev, MTDIOC_SETSPEED, (unsigned long)spi_speed_mhz * 1000 * 1000);
 
 	if (ret != OK) {
 		// FIXME: From the previous warning call, it looked like this should have been fatal error instead. Tried
@@ -363,7 +372,7 @@ memoryout:
 
 		char blockname[32];
 
-		unsigned offset;
+		unsigned long offset;
 		unsigned part;
 
 		for (offset = 0, part = 0; rv == 0 && part < nparts; offset += instances[i].partition_block_counts[part], part++) {
@@ -373,8 +382,8 @@ memoryout:
 			instances[i].part_dev[part] = mtd_partition(instances[i].mtd_dev, offset, instances[i].partition_block_counts[part]);
 
 			if (instances[i].part_dev[part] == nullptr) {
-				PX4_ERR("mtd_partition failed. offset=%lu nblocks=%lu",
-					(unsigned long)offset, (unsigned long)nblocks);
+				PX4_ERR("mtd_partition failed. offset=%lu nblocks=%u",
+					offset, nblocks);
 				rv = -ENOSPC;
 				goto errout;
 			}
@@ -407,7 +416,7 @@ memoryout:
 errout:
 
 		if (rv < 0) {
-			PX4_ERR("mtd failure: %d bus %d address %d class %d",
+			PX4_ERR("mtd failure: %d bus %" PRId32 " address %" PRId32 " class %d",
 				rv,
 				PX4_I2C_DEVID_BUS(instances[i].devid),
 				PX4_I2C_DEVID_ADDR(instances[i].devid),

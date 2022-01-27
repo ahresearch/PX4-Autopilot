@@ -28,7 +28,6 @@ uint32 tx_buffer_overruns               # number of TX buffer overruns
 
 float32 rx_rate_avg                     # transmit rate average (Bytes/s)
 uint32 rx_message_count                 # count of total messages received
-uint32 rx_message_count_supported       # count of total messages received from supported systems and components (for loss statistics)
 uint32 rx_message_lost_count
 uint32 rx_buffer_overruns               # number of RX buffer overruns
 uint32 rx_parse_errors                  # number of parse errors
@@ -45,6 +44,7 @@ bool heartbeat_type_onboard_controller      # MAV_TYPE_ONBOARD_CONTROLLER
 bool heartbeat_type_gimbal                  # MAV_TYPE_GIMBAL
 bool heartbeat_type_adsb                    # MAV_TYPE_ADSB
 bool heartbeat_type_camera                  # MAV_TYPE_CAMERA
+bool heartbeat_type_parachute               # MAV_TYPE_PARACHUTE
 
 # Heartbeats per component
 bool heartbeat_component_telemetry_radio    # MAV_COMP_ID_TELEMETRY_RADIO
@@ -58,3 +58,4 @@ bool heartbeat_component_uart_bridge        # MAV_COMP_ID_UART_BRIDGE
 
 # Misc component health
 bool avoidance_system_healthy
+bool parachute_system_healthy
