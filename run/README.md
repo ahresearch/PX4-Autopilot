@@ -32,6 +32,19 @@ make px4_sitl none
 ```
 
 
+### Running PX4 from the command line
+
+```
+
+Run jmavsim in one window:
+./Tools/jmavsim_run.sh -l
+
+
+Run PX4 in another window or in an IDE:
+export PX4_SIM_MODEL=iris        # Can be placed in .bashrc
+/home/anton/projects/PX4-Autopilot/build/px4_sitl_default/bin/px4 /home/anton/projects/PX4-Autopilot/build/px4_sitl_default/etc -s etc/init.d-posix/rcS -t /home/anton/projects/PX4-Autopilot/test_data
+
+```
 
 ## Setting up development with Visual Studio Code
 
@@ -80,10 +93,31 @@ There will be a folder created from the build called build-PX4-Autopilot-Desktop
 
 Change the build directory:
 Go to Projects/Build and select a folder that is under the main folder of PX4:
-PX4-Autopilot/build-PX4-Autopilot-Desktop-Debug
+PX4-Autopilot/build/px4_sitl_default
 
-Go to Projects/Run and select the working directory to be:
+Go to Projects/Run and select :
+
+Executable:
+/home/anton/projects/PX4-Autopilot/build/px4_sitl_default/bin/px4
+
+Command Line Parameters:
+/home/anton/projects/PX4-Autopilot/build/px4_sitl_default/etc -s etc/init.d-posix/rcS -t /home/anton/projects/PX4-Autopilot/test_data
+
+Working directory:
 PX4-Autopilot
 
+Check the checkbox:
+Run in terminal
+
+Go to Run/Run Environment
+Add the following environment variable for QTCreator's run environment:
+PX4_SIM_MODEL iris
+
+Run jmavsim in one window:
+./Tools/jmavsim_run.sh -l
+
+Run QGroundcontrol in a separate window
+
+Run px4 in the IDE. A new terminal window will pop up.
 
 ```
