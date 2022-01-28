@@ -75,6 +75,29 @@ The project should be able to build and produce the px4 executable and all other
 
 Jumping to defintions should work fine.
 
+Go to Run Configurations for the project.
+
+Set Command Line Parameters Tab:
+/home/anton/projects/PX4-Autopilot/build/px4_sitl_default/etc -s etc/init.d-posix/rcS -t /home/anton/projects/PX4-Autopilot/test_data
+
+Add the following environment variable in the Environment Tab:
+PX4_SIM_MODEL iris
+
+Select Apply
+
+Run jmavsim in one window:
+./Tools/jmavsim_run.sh -l
+
+Run QGroundcontrol in a separate window
+
+Go to Run menu and select:
+
+Run as Local C/C++ Application
+
+or
+
+Debug as Local C/C++ Application
+
 ```
 
 
@@ -119,5 +142,7 @@ Run jmavsim in one window:
 Run QGroundcontrol in a separate window
 
 Run px4 in the IDE. A new terminal window will pop up.
+
+Debug px4 in the IDE.
 
 ```
