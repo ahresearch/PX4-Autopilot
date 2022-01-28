@@ -33,7 +33,7 @@ make px4_sitl none
 
 
 
-## Setting up to develop with Visual Studio Code
+## Setting up development with Visual Studio Code
 
 ```
 Go to the main folder of PX4
@@ -42,13 +42,14 @@ Have the C/C++ extensions installed in VS Code
 From the that folder type:
 ```
 <em>code  .</em>
+
 ```
 One should be able to browse through the code and jump to defintions, etc.
 
 ```
 
 
-## Setting up to develop with Eclipse
+## Setting up development with Eclipse
 
 ```
 Select the following from the menus:
@@ -60,5 +61,29 @@ Point to the top folder of PX4
 The project should be able to build and produce the px4 executable and all other executables.
 
 Jumping to defintions should work fine.
+
+```
+
+
+## Setting up development with QTCreator
+
+```
+Go to menu:
+
+File/Open File or Project
+
+Select the CMakeLists.txt
+
+Press configure project and build the code.
+
+There will be a folder created from the build called build-PX4-Autopilot-Desktop-Debug alongside PX4-Autopilot
+
+Change the build directory:
+Go to Projects/Build and select a folder that is under the main folder of PX4:
+PX4-Autopilot/build-PX4-Autopilot-Desktop-Debug
+
+Go to Projects/Run and select the working directory to be:
+PX4-Autopilot
+
 
 ```
