@@ -98,6 +98,22 @@ or
 
 Debug as Local C/C++ Application
 
+In order to skip the SIGCONT signals add the following to 
+
+~/.gdbinit
+
+handle SIGCONT nostop noprint nopass
+
+Add ~/.gdbinit in the following place:
+Run/Debugger Configurations/Debugger Tab/GDB command line
+
+Alternatively if you do not have .gdbinit need to set the parameters every time gdb is run.
+Once the debugger starts go to the Debugger Console tab and add the following parameters:
+
+(gdb) handle SIGCONT nostop noprint nopass
+
+Select Resume as many times as necessary if the debugger keeps stopping at exceptions
+
 ```
 
 
