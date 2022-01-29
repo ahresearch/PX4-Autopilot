@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Jan 27 13:39:47 2022
+# Make data base, printed on Fri Jan 28 21:02:33 2022
 
 # Variables
 
@@ -30,8 +30,10 @@ XDG_SESSION_CLASS = user
 XDG_SESSION_TYPE = x11
 # environment
 VSCODE_LOG_NATIVE = false
-# automatic
-?D = $(patsubst %/,%,$(dir $?))
+# environment
+PX4_SIM_MODEL = iris
+# environment
+IM_CONFIG_PHASE = 1
 # makefile (from 'Makefile', line 244)
 deprecation_warning = 	$(warning $(1) has been deprecated and will be removed, please use $(2)!)
 # automatic
@@ -46,12 +48,27 @@ XMODIFIERS = @im=ibus
 CURDIR := /home/anton/projects/PX4-Autopilot
 # makefile
 SHELL = /bin/sh
-# environment
-VTE_VERSION = 6003
+# makefile (from 'Makefile', line 181)
+define cmake-build
+	$(eval CMAKE_ARGS += -DCONFIG=$(1))
+	@$(eval BUILD_DIR = "$(SRC_DIR)/build/$(1)")
+	@# check if the desired cmake configuration matches the cache then CMAKE_CACHE_CHECK stays empty
+	@$(call cmake-cache-check)
+	@# make sure to start from scratch when switching from GNU Make to Ninja
+	@if [ $(PX4_CMAKE_GENERATOR) = "Ninja" ] && [ -e $(BUILD_DIR)/Makefile ]; then rm -rf $(BUILD_DIR); fi
+	@# make sure to start from scratch if ninja build file is missing
+	@if [ $(PX4_CMAKE_GENERATOR) = "Ninja" ] && [ ! -f $(BUILD_DIR)/build.ninja ]; then rm -rf $(BUILD_DIR); fi
+	@# only excplicitly configure the first build, if cache file already exists the makefile will rerun cmake automatically if necessary
+	@if [ ! -e $(BUILD_DIR)/CMakeCache.txt ] || [ $(CMAKE_CACHE_CHECK) ]; then mkdir -p $(BUILD_DIR) && cd $(BUILD_DIR) && cmake "$(SRC_DIR)" -G"$(PX4_CMAKE_GENERATOR)" $(CMAKE_ARGS) || (rm -rf $(BUILD_DIR)); fi
+	@# run the build for the specified target
+	@cmake --build $(BUILD_DIR) -- $(PX4_MAKE_ARGS) $(ARGS)
+endef
 # environment
 VSCODE_NLS_CONFIG = {"locale":"en-us","availableLanguages":{},"_languagePackSupport":true}
 # environment
-JOURNAL_STREAM = 8:153609
+_ = /usr/share/code/code
+# automatic
+?D = $(patsubst %/,%,$(dir $?))
 # makefile (from 'Makefile', line 80)
 j := 
 # makefile (from 'Makefile', line 202)
@@ -67,6 +84,8 @@ define cmake-cache-check
 	@$(eval CMAKE_CACHE_CHECK = $(if $(findstring $(DESIRED_CMAKE_OPTIONS),$(VERIFIED_CMAKE_OPTIONS)),,y))
 endef
 # environment
+JOURNAL_STREAM = 8:153609
+# environment
 XDG_CONFIG_DIRS = /etc/xdg/xdg-ubuntu:/etc/xdg
 # makefile (from 'Makefile', line 1)
 MAKEFILE_LIST :=  Makefile
@@ -77,7 +96,7 @@ VERIFIED_CMAKE_OPTIONS = CONFIG=px4_sitl_default
 # makefile (from 'Makefile', line 75)
 ARGS := 
 # environment
-IM_CONFIG_PHASE = 1
+GIO_LAUNCHED_DESKTOP_FILE = /usr/share/applications/code.desktop
 # environment
 USERNAME = anton
 # environment
@@ -86,8 +105,6 @@ XDG_DATA_DIRS = /usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/d
 DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
 # environment
 VSCODE_VERBOSE_LOGGING = true
-# environment
-_ = /usr/bin/code
 # makefile (from 'Makefile', line 102)
 PX4_MAKE_ARGS := 
 # environment
@@ -97,13 +114,13 @@ TURTLEBOT3_MODEL = burger
 # environment
 LESSOPEN = | /usr/bin/lesspipe %s
 # environment
-VSCODE_CWD = /home/anton/projects/PX4-Autopilot
+VSCODE_CWD = /home/anton
 # makefile (from 'Makefile', line 230)
 CMAKE_CACHE_CHECK = 
 # default
 MAKE_HOST := x86_64-pc-linux-gnu
 # environment
-PATH = /usr/lib/ccache:/home/anton/ardupilot/Tools/autotest:/opt/gcc-arm-none-eabi-6-2017-q2-update/bin:/home/anton/.opam/default/bin:/home/anton/.elan/bin:/opt/gcc-arm-none-eabi-9-2020-q2-update/bin:/home/anton/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/usr/local/texlive/2021/bin/x86_64-linux
+PATH = /usr/lib/ccache:/home/anton/ardupilot/Tools/autotest:/opt/gcc-arm-none-eabi-6-2017-q2-update/bin:/home/anton/.opam/default/bin:/home/anton/.elan/bin:/opt/gcc-arm-none-eabi-9-2020-q2-update/bin:/home/anton/.local/bin:/usr/lib/ccache:/home/anton/ardupilot/Tools/autotest:/opt/gcc-arm-none-eabi-6-2017-q2-update/bin:/home/anton/.opam/default/bin:/home/anton/.elan/bin:/opt/gcc-arm-none-eabi-9-2020-q2-update/bin:/home/anton/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/usr/local/texlive/2021/bin/x86_64-linux
 # environment
 GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
@@ -129,11 +146,13 @@ INVOCATION_ID = bd18d600c3834f46bfb65162f0a4e357
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
-LS_COLORS = rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:
+LS_COLORS = 
 # environment
 XDG_SESSION_DESKTOP = ubuntu
 # environment
 SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
+# environment
+GIO_LAUNCHED_DESKTOP_FILE_PID = 585804
 # automatic
 %F = $(notdir $%)
 # environment
@@ -147,7 +166,7 @@ PWD = /home/anton/projects/PX4-Autopilot
 # environment
 SSH_AGENT_PID = 9599
 # environment
-PKG_CONFIG_PATH = /home/anton/.opam/default/lib/pkgconfig:
+PKG_CONFIG_PATH = /home/anton/.opam/default/lib/pkgconfig:/home/anton/.opam/default/lib/pkgconfig:
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = ubuntu:GNOME
 # environment
@@ -155,7 +174,7 @@ GTK_MODULES = gail:atk-bridge
 # makefile (from 'Makefile', line 233)
 CONFIG_TARGETS_DEFAULT := airmind_mindpx-v2 ark_can-flow ark_can-gps ark_can-rtk-gps atl_mantis-edu av_x-v1 beaglebone_blue bitcraze_crazyflie21 bitcraze_crazyflie cuav_can-gps-v1 cuav_nora cuav_x7pro cubepilot_cubeorange cubepilot_cubeyellow cubepilot_io-v2 emlid_navio2 freefly_can-rtk-gps holybro_can-gps-v1 holybro_durandal-v1 holybro_kakutef7 holybro_kakuteh7 holybro_pix32v5 matek_h743-slim modalai_fc-v1 modalai_fc-v2 mro_ctrl-zero-f7-oem mro_ctrl-zero-f7 mro_ctrl-zero-h7-oem mro_ctrl-zero-h7 mro_pixracerpro mro_x21-777 mro_x21 nxp_fmuk66-e nxp_fmuk66-v3 nxp_fmurt1062-v1 nxp_ucans32k146 omnibus_f4sd px4_fmu-v2 px4_fmu-v3 px4_fmu-v4 px4_fmu-v4pro px4_fmu-v5 px4_fmu-v5x px4_fmu-v6u px4_fmu-v6x px4_io-v2 px4_raspberrypi px4_sitl raspberrypi_pico scumaker_pilotpi spracing_h7extreme uvify_core
 # environment
-MANPATH = :/home/anton/.opam/default/man
+MANPATH = :/home/anton/.opam/default/man:/home/anton/.opam/default/man
 # environment
 VSCODE_AMD_ENTRYPOINT = vs/workbench/services/extensions/node/extensionHostProcess
 # environment
@@ -165,40 +184,19 @@ LD_LIBRARY_PATH = /usr/lib32/:/usr/local/cuda-11/lib64
 # environment
 LESSCLOSE = /usr/bin/lesspipe %s %s
 # environment
-VSCODE_CLI = 1
-# environment
 VSCODE_CODE_CACHE_PATH = /home/anton/.config/Code/CachedData/899d46d82c4c95423fb7e10e68eba52050e30ba3
 # environment
 LOGNAME = anton
 # environment
 APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
 # environment
-ELECTRON_NO_ATTACH_CONSOLE = 1
-# environment
 VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # environment
 GNOME_DESKTOP_SESSION_ID = this-is-deprecated
 # automatic
 ^D = $(patsubst %/,%,$(dir $^))
-# makefile (from 'Makefile', line 181)
-define cmake-build
-	$(eval CMAKE_ARGS += -DCONFIG=$(1))
-	@$(eval BUILD_DIR = "$(SRC_DIR)/build/$(1)")
-	@# check if the desired cmake configuration matches the cache then CMAKE_CACHE_CHECK stays empty
-	@$(call cmake-cache-check)
-	@# make sure to start from scratch when switching from GNU Make to Ninja
-	@if [ $(PX4_CMAKE_GENERATOR) = "Ninja" ] && [ -e $(BUILD_DIR)/Makefile ]; then rm -rf $(BUILD_DIR); fi
-	@# make sure to start from scratch if ninja build file is missing
-	@if [ $(PX4_CMAKE_GENERATOR) = "Ninja" ] && [ ! -f $(BUILD_DIR)/build.ninja ]; then rm -rf $(BUILD_DIR); fi
-	@# only excplicitly configure the first build, if cache file already exists the makefile will rerun cmake automatically if necessary
-	@if [ ! -e $(BUILD_DIR)/CMakeCache.txt ] || [ $(CMAKE_CACHE_CHECK) ]; then mkdir -p $(BUILD_DIR) && cd $(BUILD_DIR) && cmake "$(SRC_DIR)" -G"$(PX4_CMAKE_GENERATOR)" $(CMAKE_ARGS) || (rm -rf $(BUILD_DIR)); fi
-	@# run the build for the specified target
-	@cmake --build $(BUILD_DIR) -- $(PX4_MAKE_ARGS) $(ARGS)
-endef
 # environment
 MAKELEVEL := 0
-# environment
-COLORTERM = truecolor
 # default
 MAKE = $(MAKE_COMMAND)
 # default
@@ -206,7 +204,7 @@ MAKECMDGOALS := all
 # environment
 QT_IM_MODULE = ibus
 # environment
-SHLVL = 1
+SHLVL = 0
 # makefile (from 'Makefile', line 85)
 NINJA_BIN := ninja
 # environment
@@ -214,7 +212,7 @@ GNOME_SHELL_SESSION_MODE = ubuntu
 # makefile (from 'Makefile', line 230)
 BUILD_DIR = "/home/anton/projects/PX4-Autopilot/build/px4_sitl_default"
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-6a0fc3d7-02bf-4b85-b9b1-a0f20310ce9b.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-bacaf1f8-f54f-45d8-913c-480235733397.sock
 # default
 MAKE_VERSION := 4.2.1
 # environment
@@ -233,8 +231,6 @@ colorecho = +@echo -e '${COLOR_BLUE}${1} ${NO_COLOR}'
 %D = $(patsubst %/,%,$(dir $%))
 # default
 MAKE_COMMAND := make
-# environment
-OLDPWD = /home/anton/projects/PX4-Autopilot/src
 # default
 .VARIABLES := 
 # automatic
@@ -266,7 +262,7 @@ QT_ACCESSIBILITY = 1
 # makefile (from 'Makefile', line 214)
 COLOR_BLUE = \033[0;94m
 # makefile (from 'Makefile', line 79)
-MAKE_PID := 384086
+MAKE_PID := 588699
 # 'override' directive
 .SHELLSTATUS := 0
 # default
@@ -281,21 +277,17 @@ CMAKE_ARGS = -DCONFIG=px4_sitl_default
 ELECTRON_RUN_AS_NODE = 1
 # environment
 ROS_MASTER_URI = http://anton-Gazelle:11311
-# makefile (from 'Makefile', line 222)
-ALL_CONFIG_TARGETS := airmind_mindpx-v2_default ark_can-flow_canbootloader ark_can-flow_default ark_can-gps_canbootloader ark_can-gps_default ark_can-rtk-gps_canbootloader ark_can-rtk-gps_debug ark_can-rtk-gps_default atl_mantis-edu_default av_x-v1_default beaglebone_blue_default bitcraze_crazyflie21_default bitcraze_crazyflie_default cuav_can-gps-v1_canbootloader cuav_can-gps-v1_default cuav_nora_bootloader cuav_nora_default cuav_x7pro_bootloader cuav_x7pro_default cuav_x7pro_test cubepilot_cubeorange_bootloader cubepilot_cubeorange_default cubepilot_cubeorange_test cubepilot_cubeyellow_default cubepilot_io-v2_default emlid_navio2_default freefly_can-rtk-gps_canbootloader freefly_can-rtk-gps_default holybro_can-gps-v1_canbootloader holybro_can-gps-v1_default holybro_durandal-v1_bootloader holybro_durandal-v1_default holybro_kakutef7_default holybro_kakuteh7_bootloader holybro_kakuteh7_default holybro_pix32v5_default matek_h743-slim_bootloader matek_h743-slim_default modalai_fc-v1_default modalai_fc-v1_rtps modalai_fc-v2_bootloader modalai_fc-v2_default mro_ctrl-zero-f7-oem_default mro_ctrl-zero-f7_default mro_ctrl-zero-h7-oem_bootloader mro_ctrl-zero-h7-oem_default mro_ctrl-zero-h7-oem_rtps mro_ctrl-zero-h7_bootloader mro_ctrl-zero-h7_default mro_ctrl-zero-h7_rtps mro_pixracerpro_bootloader mro_pixracerpro_default mro_pixracerpro_rtps mro_x21-777_default mro_x21_default nxp_fmuk66-e_default nxp_fmuk66-e_rtps nxp_fmuk66-e_socketcan nxp_fmuk66-v3_default nxp_fmuk66-v3_rtps nxp_fmuk66-v3_socketcan nxp_fmuk66-v3_test nxp_fmurt1062-v1_default nxp_ucans32k146_canbootloader nxp_ucans32k146_default nxp_ucans32k146_servo omnibus_f4sd_default px4_fmu-v2_default px4_fmu-v2_fixedwing px4_fmu-v2_multicopter px4_fmu-v2_rover px4_fmu-v2_test px4_fmu-v3_default px4_fmu-v3_test px4_fmu-v4_default px4_fmu-v4_test px4_fmu-v4pro_default px4_fmu-v4pro_test px4_fmu-v5_cryptotest px4_fmu-v5_debug px4_fmu-v5_default px4_fmu-v5_rtps px4_fmu-v5_stackcheck px4_fmu-v5_test px4_fmu-v5_uavcanv0periph px4_fmu-v5_uavcanv1 px4_fmu-v5x_default px4_fmu-v5x_rtps px4_fmu-v5x_test px4_fmu-v6u_bootloader px4_fmu-v6u_default px4_fmu-v6x_bootloader px4_fmu-v6x_default px4_io-v2_default px4_raspberrypi_default px4_sitl_default px4_sitl_nolockstep px4_sitl_replay px4_sitl_rtps px4_sitl_test raspberrypi_pico_default scumaker_pilotpi_arm64 scumaker_pilotpi_default spracing_h7extreme_default uvify_core_default
- 
 # environment
 LC_ALL = C
 # makefile (from 'Makefile', line 129)
 BUILD_DIR_SUFFIX := 
 # environment
 GJS_DEBUG_TOPICS = JS ERROR;JS LOG
-# environment
-GNOME_TERMINAL_SCREEN = /org/gnome/Terminal/screen/6ec8f612_45ec_4b84_a6bd_e0ef00b5fd59
+# makefile (from 'Makefile', line 222)
+ALL_CONFIG_TARGETS := airmind_mindpx-v2_default ark_can-flow_canbootloader ark_can-flow_default ark_can-gps_canbootloader ark_can-gps_default ark_can-rtk-gps_canbootloader ark_can-rtk-gps_debug ark_can-rtk-gps_default atl_mantis-edu_default av_x-v1_default beaglebone_blue_default bitcraze_crazyflie21_default bitcraze_crazyflie_default cuav_can-gps-v1_canbootloader cuav_can-gps-v1_default cuav_nora_bootloader cuav_nora_default cuav_x7pro_bootloader cuav_x7pro_default cuav_x7pro_test cubepilot_cubeorange_bootloader cubepilot_cubeorange_default cubepilot_cubeorange_test cubepilot_cubeyellow_default cubepilot_io-v2_default emlid_navio2_default freefly_can-rtk-gps_canbootloader freefly_can-rtk-gps_default holybro_can-gps-v1_canbootloader holybro_can-gps-v1_default holybro_durandal-v1_bootloader holybro_durandal-v1_default holybro_kakutef7_default holybro_kakuteh7_bootloader holybro_kakuteh7_default holybro_pix32v5_default matek_h743-slim_bootloader matek_h743-slim_default modalai_fc-v1_default modalai_fc-v1_rtps modalai_fc-v2_bootloader modalai_fc-v2_default mro_ctrl-zero-f7-oem_default mro_ctrl-zero-f7_default mro_ctrl-zero-h7-oem_bootloader mro_ctrl-zero-h7-oem_default mro_ctrl-zero-h7-oem_rtps mro_ctrl-zero-h7_bootloader mro_ctrl-zero-h7_default mro_ctrl-zero-h7_rtps mro_pixracerpro_bootloader mro_pixracerpro_default mro_pixracerpro_rtps mro_x21-777_default mro_x21_default nxp_fmuk66-e_default nxp_fmuk66-e_rtps nxp_fmuk66-e_socketcan nxp_fmuk66-v3_default nxp_fmuk66-v3_rtps nxp_fmuk66-v3_socketcan nxp_fmuk66-v3_test nxp_fmurt1062-v1_default nxp_ucans32k146_canbootloader nxp_ucans32k146_default nxp_ucans32k146_servo omnibus_f4sd_default px4_fmu-v2_default px4_fmu-v2_fixedwing px4_fmu-v2_multicopter px4_fmu-v2_rover px4_fmu-v2_test px4_fmu-v3_default px4_fmu-v3_test px4_fmu-v4_default px4_fmu-v4_test px4_fmu-v4pro_default px4_fmu-v4pro_test px4_fmu-v5_cryptotest px4_fmu-v5_debug px4_fmu-v5_default px4_fmu-v5_rtps px4_fmu-v5_stackcheck px4_fmu-v5_test px4_fmu-v5_uavcanv0periph px4_fmu-v5_uavcanv1 px4_fmu-v5x_default px4_fmu-v5x_rtps px4_fmu-v5x_test px4_fmu-v6u_bootloader px4_fmu-v6u_default px4_fmu-v6x_bootloader px4_fmu-v6x_default px4_io-v2_default px4_raspberrypi_default px4_sitl_default px4_sitl_nolockstep px4_sitl_replay px4_sitl_rtps px4_sitl_test raspberrypi_pico_default scumaker_pilotpi_arm64 scumaker_pilotpi_default spracing_h7extreme_default uvify_core_default
+ 
 # automatic
 ^F = $(notdir $^)
-# environment
-GNOME_TERMINAL_SERVICE = :1.1187
 # default
 SUFFIXES := 
 # environment
@@ -314,14 +306,12 @@ PX4_MAKE := ninja
 j_clang_tidy := 4
 # environment
 LANG = C
-# environment
-TERM = xterm-256color
 # makefile (from 'Makefile', line 230)
 CACHED_CMAKE_OPTIONS = BLOATY_PROGRAM=BLOATY_PROGRAM-NOTFOUND BOARD_CONFIG=/home/anton/projects/PX4-Autopilot/build/px4_sitl_default/boardconfig BOARD_DEFCONFIG=/home/anton/projects/PX4-Autopilot/boards/px4/sitl/default.px4board BUILD_DOXYGEN=OFF CCACHE=ON CMAKE_BUILD_TYPE=RelWithDebInfo CMAKE_INSTALL_PREFIX=/usr/local CMAKE_TESTING=OFF CONFIG=px4_sitl_default DPKG_PROGRAM=/usr/bin/dpkg ENABLE_UART_RC_INPUT=OFF EXTERNAL_MODULES_LOCATION= GENHTML_PATH=/usr/bin/genhtml LABEL=default LCOV_PATH=/usr/bin/lcov MODEL=sitl PX4_BINARY_DIR=/home/anton/projects/PX4-Autopilot/build/px4_sitl_default PX4_BOARD=px4_sitl PX4_BOARD_DIR=/home/anton/projects/PX4-Autopilot/boards/px4/sitl PX4_BOARD_LABEL=default PX4_BOARD_LINKER_PREFIX= PX4_BOARD_MODEL=sitl PX4_BOARD_NAME=PX4_SITL PX4_BOARD_VENDOR=px4 PX4_CHIP=generic PX4_CHIP_MANUFACTURER=generic PX4_CONFIG=px4_sitl_default PX4_CONFIGS=airmind/mindpx-v2/default.px4board;ark/can-flow/canbootloader.px4board;ark/can-flow/default.px4board;ark/can-gps/canbootloader.px4board;ark/can-gps/default.px4board;ark/can-rtk-gps/canbootloader.px4board;ark/can-rtk-gps/debug.px4board;ark/can-rtk-gps/default.px4board;atl/mantis-edu/default.px4board;av/x-v1/default.px4board;beaglebone/blue/default.px4board;bitcraze/crazyflie/default.px4board;bitcraze/crazyflie21/default.px4board;cuav/can-gps-v1/canbootloader.px4board;cuav/can-gps-v1/default.px4board;cuav/nora/bootloader.px4board;cuav/nora/default.px4board;cuav/x7pro/bootloader.px4board;cuav/x7pro/default.px4board;cuav/x7pro/test.px4board;cubepilot/cubeorange/bootloader.px4board;cubepilot/cubeorange/default.px4board;cubepilot/cubeorange/test.px4board;cubepilot/cubeyellow/default.px4board;cubepilot/io-v2/default.px4board;emlid/navio2/default.px4board;freefly/can-rtk-gps/canbootloader.px4board;freefly/can-rtk-gps/default.px4board;holybro/can-gps-v1/canbootloader.px4board;holybro/can-gps-v1/default.px4board;holybro/durandal-v1/bootloader.px4board;holybro/durandal-v1/default.px4board;holybro/kakutef7/default.px4board;holybro/kakuteh7/bootloader.px4board;holybro/kakuteh7/default.px4board;holybro/pix32v5/default.px4board;matek/h743-slim/bootloader.px4board;matek/h743-slim/default.px4board;modalai/fc-v1/default.px4board;modalai/fc-v1/rtps.px4board;modalai/fc-v2/bootloader.px4board;modalai/fc-v2/default.px4board;mro/ctrl-zero-f7-oem/default.px4board;mro/ctrl-zero-f7/default.px4board;mro/ctrl-zero-h7-oem/bootloader.px4board;mro/ctrl-zero-h7-oem/default.px4board;mro/ctrl-zero-h7-oem/rtps.px4board;mro/ctrl-zero-h7/bootloader.px4board;mro/ctrl-zero-h7/default.px4board;mro/ctrl-zero-h7/rtps.px4board;mro/pixracerpro/bootloader.px4board;mro/pixracerpro/default.px4board;mro/pixracerpro/rtps.px4board;mro/x21-777/default.px4board;mro/x21/default.px4board;nxp/fmuk66-e/default.px4board;nxp/fmuk66-e/rtps.px4board;nxp/fmuk66-e/socketcan.px4board;nxp/fmuk66-v3/default.px4board;nxp/fmuk66-v3/rtps.px4board;nxp/fmuk66-v3/socketcan.px4board;nxp/fmuk66-v3/test.px4board;nxp/fmurt1062-v1/default.px4board;nxp/ucans32k146/canbootloader.px4board;nxp/ucans32k146/default.px4board;nxp/ucans32k146/servo.px4board;omnibus/f4sd/default.px4board;px4/fmu-v2/default.px4board;px4/fmu-v2/fixedwing.px4board;px4/fmu-v2/multicopter.px4board;px4/fmu-v2/rover.px4board;px4/fmu-v2/test.px4board;px4/fmu-v3/default.px4board;px4/fmu-v3/test.px4board;px4/fmu-v4/default.px4board;px4/fmu-v4/test.px4board;px4/fmu-v4pro/default.px4board;px4/fmu-v4pro/test.px4board;px4/fmu-v5/cryptotest.px4board;px4/fmu-v5/debug.px4board;px4/fmu-v5/default.px4board;px4/fmu-v5/rtps.px4board;px4/fmu-v5/stackcheck.px4board;px4/fmu-v5/test.px4board;px4/fmu-v5/uavcanv0periph.px4board;px4/fmu-v5/uavcanv1.px4board;px4/fmu-v5x/default.px4board;px4/fmu-v5x/rtps.px4board;px4/fmu-v5x/test.px4board;px4/fmu-v6u/bootloader.px4board;px4/fmu-v6u/default.px4board;px4/fmu-v6x/bootloader.px4board;px4/fmu-v6x/default.px4board;px4/io-v2/default.px4board;px4/raspberrypi/default.px4board;px4/sitl/default.px4board;px4/sitl/nolockstep.px4board;px4/sitl/replay.px4board;px4/sitl/rtps.px4board;px4/sitl/test.px4board;raspberrypi/pico/default.px4board;scumaker/pilotpi/arm64.px4board;scumaker/pilotpi/default.px4board;spracing/h7extreme/default.px4board;uvify/core/default.px4board PX4_CONFIG_FILE=/home/anton/projects/PX4-Autopilot/boards/px4/sitl/default.px4board PX4_PLATFORM=posix PX4_SOURCE_DIR=/home/anton/projects/PX4-Autopilot PYTHON_COVERAGE=OFF SHELLCHECK_PATH=/usr/bin/shellcheck TESTFILTER= USE_LD_GOLD=ON VENDOR=px4 config_sitl_debugger=disable config_sitl_viewer=jmavsim
 # makefile (from 'Makefile', line 96)
 PX4_CMAKE_GENERATOR := Ninja
 # environment
-VSCODE_PID = 383714
+VSCODE_PID = 585804
 # makefile (from 'Makefile', line 74)
 FIRST_ARG := all
 # environment
@@ -329,7 +319,7 @@ ANTLR_JAR = /home/anton/ANTLR-VER/antlr-4.7.2-complete.jar
 # makefile (from 'Makefile', line 215)
 NO_COLOR = \033[m
 # variable set hash-table stats:
-# Load=147/1024=14%, Rehash=0, Collisions=29/290=10%
+# Load=142/1024=14%, Rehash=0, Collisions=22/285=8%
 
 # Pattern-specific Variable Values
 
@@ -337,9 +327,9 @@ NO_COLOR = \033[m
 
 # Directories
 
-# . (device 66309, inode 12461468): 47 files, no impossibilities.
+# . (device 66309, inode 12461468): 56 files, no impossibilities.
 
-# 47 files, no impossibilities in 1 directories.
+# 56 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -591,6 +581,7 @@ all: px4_sitl_default
 #  File does not exist.
 #  File has been updated.
 #  Needs to be updated (-q is set).
+ 
 # variable set hash-table stats:
 # Load=0/32=0%, Rehash=0, Collisions=0/46=0%
 
@@ -600,7 +591,6 @@ check_beaglebone_blue_default:
 #  Modification time never checked.
 #  File has not been updated.
 
- 
 validate_module_configs:
 #  Phony target (prerequisite of .PHONY).
 #  Implicit rule search has not been done.
@@ -869,6 +859,7 @@ px4_fmu-v5_default:
 
 # Not a target:
 check_px4_fmu-v5:
+ 
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
@@ -929,7 +920,6 @@ check_bitcraze_crazyflie_default:
 Makefile:
 #  Implicit rule search has been done.
 #  Implicit/static pattern stem: 'Makefile'
- 
 #  Last modified 2022-01-26 20:25:00.45463997
 #  File has been updated.
 #  Successfully updated.
@@ -1185,6 +1175,7 @@ raspberrypi_pico_default:
 #  Modification time never checked.
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 230):
+ 
 	@$(call cmake-build,$@$(BUILD_DIR_SUFFIX))
 
 clang-tidy: px4_sitl_default-clang
@@ -1234,7 +1225,6 @@ px4_fmu-v2_default:
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 230):
 	@$(call cmake-build,$@$(BUILD_DIR_SUFFIX))
- 
 
 # Not a target:
 check_px4_sitl_test:
@@ -1465,6 +1455,7 @@ check_cuav_can-gps-v1:
 #  Modification time never checked.
 #  File has not been updated.
 
+ 
 tests_coverage:
 #  Phony target (prerequisite of .PHONY).
 #  Implicit rule search has not been done.
@@ -1518,7 +1509,6 @@ raspberrypi_pico:
 
 mro_ctrl-zero-h7_default:
 #  Implicit rule search has not been done.
- 
 #  Modification time never checked.
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 230):
@@ -1782,6 +1772,7 @@ check_freefly_can-rtk-gps:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
+ 
 
 bitcraze_crazyflie21:
 #  Implicit rule search has not been done.
@@ -1830,7 +1821,6 @@ uvify_core:
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 235):
 	@$(call cmake-build,$@_default$(BUILD_DIR_SUFFIX))
- 
 
 # Not a target:
 check_nxp_ucans32k146:
@@ -2076,6 +2066,7 @@ nxp_ucans32k146_servo:
 
 px4_fmu-v2_fixedwing:
 #  Implicit rule search has not been done.
+ 
 #  Modification time never checked.
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 230):
@@ -2108,7 +2099,6 @@ ark_can-gps_default:
 #  recipe to execute (from 'Makefile', line 230):
 	@$(call cmake-build,$@$(BUILD_DIR_SUFFIX))
 
- 
 px4_fmu-v6u:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
@@ -2367,6 +2357,7 @@ ark_can-rtk-gps:
 scumaker_pilotpi:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
+ 
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 235):
 	@$(call cmake-build,$@_default$(BUILD_DIR_SUFFIX))
@@ -2401,7 +2392,6 @@ cuav_nora_default:
 
 all_default_targets: airmind_mindpx-v2 ark_can-flow ark_can-gps ark_can-rtk-gps atl_mantis-edu av_x-v1 beaglebone_blue bitcraze_crazyflie21 bitcraze_crazyflie cuav_can-gps-v1 cuav_nora cuav_x7pro cubepilot_cubeorange cubepilot_cubeyellow cubepilot_io-v2 emlid_navio2 freefly_can-rtk-gps holybro_can-gps-v1 holybro_durandal-v1 holybro_kakutef7 holybro_kakuteh7 holybro_pix32v5 matek_h743-slim modalai_fc-v1 modalai_fc-v2 mro_ctrl-zero-f7-oem mro_ctrl-zero-f7 mro_ctrl-zero-h7-oem mro_ctrl-zero-h7 mro_pixracerpro mro_x21-777 mro_x21 nxp_fmuk66-e nxp_fmuk66-v3 nxp_fmurt1062-v1 nxp_ucans32k146 omnibus_f4sd px4_fmu-v2 px4_fmu-v3 px4_fmu-v4 px4_fmu-v4pro px4_fmu-v5 px4_fmu-v5x px4_fmu-v6u px4_fmu-v6x px4_io-v2 px4_raspberrypi px4_sitl raspberrypi_pico scumaker_pilotpi spracing_h7extreme uvify_core
 #  Phony target (prerequisite of .PHONY).
- 
 #  Implicit rule search has not been done.
 #  File does not exist.
 #  File has not been updated.
@@ -2420,12 +2410,12 @@ check_airmind_mindpx-v2_default:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 335 / storage = 6120 B / avg = 18 B
-# current buf: size = 8162 B / used = 6120 B / count = 335 / avg = 18 B
+# strcache buffers: 1 (0) / strings = 344 / storage = 6196 B / avg = 18 B
+# current buf: size = 8162 B / used = 6196 B / count = 344 / avg = 18 B
 
-# strcache performance: lookups = 834 / hit rate = 59%
+# strcache performance: lookups = 843 / hit rate = 59%
 # hash-table stats:
-# Load=335/8192=4%, Rehash=0, Collisions=24/834=3%
-# Finished Make data base on Thu Jan 27 13:39:47 2022
+# Load=344/8192=4%, Rehash=0, Collisions=28/843=3%
+# Finished Make data base on Fri Jan 28 21:02:33 2022
 
  
