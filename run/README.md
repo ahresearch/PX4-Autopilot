@@ -49,15 +49,31 @@ export PX4_SIM_MODEL=iris        # Can be placed in .bashrc
 ## Setting up development with Visual Studio Code
 
 ```
-Go to the main folder of PX4
-There needs to be a .vscode folder with the right .json files for working with C++
-Have the C/C++ extensions installed in VS Code
-From the that folder type:
-```
-<em>code  .</em>
+Start VS Code
 
-```
-One should be able to browse through the code and jump to defintions, etc.
+File/Open Folder
+
+Select the PX-Autopilot folder
+
+The code will be automatically build
+
+Go to Run/Open Configuration
+This will open launch.json
+
+
+Insert "miDebuggerArgs": "~/.gdbinit",
+right after "MIMode": "gdb",
+Do this for all targets in launch.json
+
+The file ~/.gdbinit should contain the following:
+handle SIGCONT nostop noprint nopass 
+
+Go to Run and Debug on the left side bar and select it.
+Select the Launch configuration to run or debug
+
+Place any breakpoints
+
+Go to Run/Start Debugging to begin debugging
 
 ```
 
