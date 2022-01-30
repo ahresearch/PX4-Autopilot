@@ -1,0 +1,5 @@
+menuconfig MODULES_MC_ATT_CONTROL_BACKUP
+	bool "mc_att_control_backup"
+	default n
+	---help---
+		Enable support for mc_att_control_backup
