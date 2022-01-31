@@ -65,7 +65,7 @@ mc_rate_control start
 # Start Multicopter Attitude Controller.
 #
 mc_att_control start
-#mc_att_control_backup start
+mc_att_control_backup start
 
 if param greater -s MC_AT_EN 0
 then
