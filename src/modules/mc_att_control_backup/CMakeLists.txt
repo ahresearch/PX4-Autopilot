@@ -1,6 +1,6 @@
 ############################################################################
 #
-#   Copyright (c) 2015-2019 PX4 Development Team. All rights reserved.
+#   Copyright (c) 2018 PX4 Development Team. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,19 +30,10 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 ############################################################################
-
-#add_subdirectory(AttitudeControl)
-
 px4_add_module(
 	MODULE modules__mc_att_control_backup
 	MAIN mc_att_control_backup
-	COMPILE_FLAGS
-		${MAX_CUSTOM_OPT_LEVEL}
 	SRCS
-		mc_att_control_backup_main.cpp
-		mc_att_control.hpp
-	DEPENDS
-		AttitudeControl
-		mathlib
-		px4_work_queue
+		mc_att_control_backup.cpp
+	EXTERNAL
 	)
