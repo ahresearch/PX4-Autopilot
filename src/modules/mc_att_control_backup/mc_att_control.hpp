@@ -66,12 +66,12 @@ using namespace time_literals;
  */
 extern "C" __EXPORT int mc_att_control_backup_main(int argc, char *argv[]);
 
-class MulticopterAttitudeControl : public ModuleBase<MulticopterAttitudeControl>, public ModuleParams,
+class MulticopterAttitudeControlBackup : public ModuleBase<MulticopterAttitudeControlBackup>, public ModuleParams,
 	public px4::WorkItem
 {
 public:
-	MulticopterAttitudeControl(bool vtol = false);
-	~MulticopterAttitudeControl() override;
+	MulticopterAttitudeControlBackup(bool vtol = false);
+	~MulticopterAttitudeControlBackup() override;
 
 	/** @see ModuleBase */
 	static int task_spawn(int argc, char *argv[]);

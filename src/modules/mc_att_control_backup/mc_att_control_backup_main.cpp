@@ -51,7 +51,7 @@
 
 using namespace matrix;
 
-MulticopterAttitudeControl::MulticopterAttitudeControl(bool vtol) :
+MulticopterAttitudeControlBackup::MulticopterAttitudeControlBackup(bool vtol) :
 	ModuleParams(nullptr),
 	WorkItem(MODULE_NAME, px4::wq_configurations::nav_and_controllers),
 	_vehicle_attitude_setpoint_pub(vtol ? ORB_ID(mc_virtual_attitude_setpoint) : ORB_ID(vehicle_attitude_setpoint)),
@@ -69,13 +69,13 @@ MulticopterAttitudeControl::MulticopterAttitudeControl(bool vtol) :
 	parameters_updated();
 }
 
-MulticopterAttitudeControl::~MulticopterAttitudeControl()
+MulticopterAttitudeControlBackup::~MulticopterAttitudeControlBackup()
 {
 	perf_free(_loop_perf);
 }
 
 bool
-MulticopterAttitudeControl::init()
+MulticopterAttitudeControlBackup::init()
 {
 	if (!_vehicle_attitude_sub.registerCallback()) {
 		PX4_ERR("vehicle_attitude callback registration failed!");
@@ -86,7 +86,7 @@ MulticopterAttitudeControl::init()
 }
 
 void
-MulticopterAttitudeControl::parameters_updated()
+MulticopterAttitudeControlBackup::parameters_updated()
 {
 	// Store some of the parameters in a more convenient way & precompute often-used values
 	_attitude_control.setProportionalGain(Vector3f(_param_mc_roll_p.get(), _param_mc_pitch_p.get(), _param_mc_yaw_p.get()),
@@ -101,7 +101,7 @@ MulticopterAttitudeControl::parameters_updated()
 }
 
 float
-MulticopterAttitudeControl::throttle_curve(float throttle_stick_input)
+MulticopterAttitudeControlBackup::throttle_curve(float throttle_stick_input)
 {
 	const float throttle_min = _landed ? 0.0f : _param_mpc_manthr_min.get();
 
@@ -118,7 +118,7 @@ MulticopterAttitudeControl::throttle_curve(float throttle_stick_input)
 }
 
 void
-MulticopterAttitudeControl::generate_attitude_setpoint(const Quatf &q, float dt, bool reset_yaw_sp)
+MulticopterAttitudeControlBackup::generate_attitude_setpoint(const Quatf &q, float dt, bool reset_yaw_sp)
 {
 	vehicle_attitude_setpoint_s attitude_setpoint{};
 	const float yaw = Eulerf(q).psi();
@@ -219,13 +219,18 @@ MulticopterAttitudeControl::generate_attitude_setpoint(const Quatf &q, float dt,
 }
 
 void
-MulticopterAttitudeControl::Run()
+MulticopterAttitudeControlBackup::Run()
 {
+       
+
+
 	if (should_exit()) {
 		_vehicle_attitude_sub.unregisterCallback();
 		exit_and_cleanup();
 		return;
 	}
+
+	return;
 
 	perf_begin(_loop_perf);
 
@@ -349,7 +354,7 @@ MulticopterAttitudeControl::Run()
 	perf_end(_loop_perf);
 }
 
-int MulticopterAttitudeControl::task_spawn(int argc, char *argv[])
+int MulticopterAttitudeControlBackup::task_spawn(int argc, char *argv[])
 {
 	bool vtol = false;
 
@@ -359,7 +364,7 @@ int MulticopterAttitudeControl::task_spawn(int argc, char *argv[])
 		}
 	}
 
-	MulticopterAttitudeControl *instance = new MulticopterAttitudeControl(vtol);
+	MulticopterAttitudeControlBackup *instance = new MulticopterAttitudeControlBackup(vtol);
 
 	if (instance) {
 		_object.store(instance);
@@ -380,12 +385,12 @@ int MulticopterAttitudeControl::task_spawn(int argc, char *argv[])
 	return PX4_ERROR;
 }
 
-int MulticopterAttitudeControl::custom_command(int argc, char *argv[])
+int MulticopterAttitudeControlBackup::custom_command(int argc, char *argv[])
 {
 	return print_usage("unknown command");
 }
 
-int MulticopterAttitudeControl::print_usage(const char *reason)
+int MulticopterAttitudeControlBackup::print_usage(const char *reason)
 {
 	if (reason) {
 		PX4_WARN("%s\n", reason);
@@ -418,5 +423,5 @@ https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/154099/eth
 
 int mc_att_control_backup_main(int argc, char *argv[])
 {
-	return MulticopterAttitudeControl::main(argc, argv);
+	return MulticopterAttitudeControlBackup::main(argc, argv);
 }
