@@ -43,6 +43,14 @@
 #include <uORB/topics/vehicle_gps_position.h>
 #include <cmath>
 
+/* Sample data structure to pass to thread */
+typedef struct _thread_data_t {
+  int tid;
+  double stuff;
+} thread_data_t;
+
+pthread_t diag_thr;
+
 int CustomModule::print_status()
 {
 	PX4_INFO("Running");
@@ -93,8 +101,24 @@ bool CustomModule::check_gps_data(double alt)
 }
 
 
+
+/* Diagnostics thread function  */
+void *diag_thr_func(void *arg) {
+  thread_data_t *data = (thread_data_t *)arg;
+
+  while(1){
+      printf("hello from diag_thr_func, thread id: %d\n", data->tid);
+      sleep(1);
+  }
+  pthread_exit(NULL);
+}
+
+
 int CustomModule::task_spawn(int argc, char *argv[])
 {
+	thread_data_t thr_data;
+	int rc;
+
 	_task_id = px4_task_spawn_cmd("custommodule",
 				      SCHED_DEFAULT,
 				      SCHED_PRIORITY_DEFAULT,
@@ -106,6 +130,15 @@ int CustomModule::task_spawn(int argc, char *argv[])
 		_task_id = -1;
 		return -errno;
 	}
+
+    thr_data.tid  = 1;
+    thr_data.stuff = 3.14;
+
+    if ((rc = pthread_create(&diag_thr, NULL, diag_thr_func, &thr_data))) {
+      fprintf(stderr, "error: pthread_create, rc: %d\n", rc);
+      return EXIT_FAILURE;
+    }
+
 
 	return 0;
 }
@@ -167,9 +200,9 @@ void CustomModule::run()
 	int pos_sub_fd = orb_subscribe(ORB_ID(vehicle_global_position));
 	int sensor_sub_fd = orb_subscribe(ORB_ID(sensor_combined));
 	int gps_sub_fd = orb_subscribe(ORB_ID(vehicle_gps_position));
-        struct vehicle_gps_position_s final_gps_pos;
-
-        px4_pollfd_struct_t fds[] = {
+    struct vehicle_gps_position_s final_gps_pos;
+    static int count = 0;
+    px4_pollfd_struct_t fds[] = {
                 { .fd = pos_sub_fd,      .events = POLLIN },
                 { .fd = sensor_sub_fd,   .events = POLLIN },
                 { .fd = gps_sub_fd,      .events = POLLIN },
@@ -184,6 +217,7 @@ void CustomModule::run()
 	orb_advert_t gps_pub = orb_advertise(ORB_ID(vehicle_gps_position), &final_gps_pos);
 
 	while (!should_exit()) {
+
 
 		// wait for up to 1000ms for data
 		int pret = px4_poll(fds, (sizeof(fds) / sizeof(fds[0])), 1000);
@@ -210,19 +244,23 @@ void CustomModule::run()
                         }
 			if (fds[1].revents & POLLIN) {
 
+
                            /* obtained data for the second file descriptor */
 			   struct sensor_combined_s sensor_combined;
 			   orb_copy(ORB_ID(sensor_combined), sensor_sub_fd, &sensor_combined);
 			   // TODO: do something with the data...
-                           /* PX4_INFO("Accelerometer:\t%8.4f\t%8.4f\t%8.4f",
+                            if(count >= 100){
+                            PX4_INFO("Accelerometer:\t%8.4f\t%8.4f\t%8.4f",
                                          (double)sensor_combined.accelerometer_m_s2[0],
                                          (double)sensor_combined.accelerometer_m_s2[1],
                                          (double)sensor_combined.accelerometer_m_s2[2]);
                            PX4_INFO("Gyro:\t%8.4f\t%8.4f\t%8.4f",
                                          (double)sensor_combined.gyro_rad[0],
                                          (double)sensor_combined.gyro_rad[1],
-                                         (double)sensor_combined.gyro_rad[2]); */
-
+                                         (double)sensor_combined.gyro_rad[2]);
+                               count = 0;
+                            }
+                            count++;
                         }
 			if (fds[2].revents & POLLIN) {
 
@@ -230,10 +268,13 @@ void CustomModule::run()
                            struct vehicle_gps_position_s gps_pos;
 			   orb_copy(ORB_ID(vehicle_gps_position), gps_sub_fd, &gps_pos);
 			   // TODO: do something with the data...
+                          /*
+
                            PX4_INFO("GPS:\t%8.4f\t%8.4f\t%8.4f",
                                          (double)gps_pos.lat,
                                          (double)gps_pos.lon,
-                                         (double)gps_pos.alt);
+                                         (double)gps_pos.alt); */
+
                            // Do some checking here 
 			   check_gps_data(gps_pos.alt); 
 			   final_gps_pos.timestamp = gps_pos.timestamp ;
@@ -316,5 +357,13 @@ $ custommodule start -f -p 42
 
 int custommodule_main(int argc, char *argv[])
 {
-	return CustomModule::main(argc, argv);
+	int res = CustomModule::main(argc, argv);
+	if ((res == 0)  && (strcmp(argv[1], "stop") == 0)) {
+		/* Cancel the diagnostics thread */
+		res = pthread_cancel(diag_thr);
+		if(res == 0){
+			PX4_INFO("Auxiliary thread stopped");
+		}
+	}
+	return res;
 }

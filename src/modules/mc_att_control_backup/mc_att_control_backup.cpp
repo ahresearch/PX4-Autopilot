@@ -70,6 +70,7 @@ int MulticopterAttitudeControlBackup::custom_command(int argc, char *argv[])
 }
 
 
+
 int MulticopterAttitudeControlBackup::test()
 {
 	PX4_INFO("test command");
@@ -95,7 +96,7 @@ bool MulticopterAttitudeControlBackup::check_gps_data(double alt)
 
 int MulticopterAttitudeControlBackup::task_spawn(int argc, char *argv[])
 {
-	_task_id = px4_task_spawn_cmd("custommodule",
+	_task_id = px4_task_spawn_cmd("mc_att_control_backup",
 				      SCHED_DEFAULT,
 				      SCHED_PRIORITY_DEFAULT,
 				      1024,
@@ -301,7 +302,7 @@ Section describing the high-level implementation of this module.
 
 ### Examples
 CLI usage example:
-$ custommodule start -f -p 42
+$ mc_att_control_backup start
 
 )DESCR_STR");
 
