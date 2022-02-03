@@ -60,6 +60,7 @@ fi
 # Start Multicopter Rate Controller.
 #
 mc_rate_control start
+#mc_rate_control_backup start
 
 #
 # Start Multicopter Attitude Controller.
