@@ -77,12 +77,11 @@ MulticopterAttitudeControlBackup::~MulticopterAttitudeControlBackup()
 bool
 MulticopterAttitudeControlBackup::init()
 {
-	PX4_WARN("Init MulticopterAttitudeControlBackup");
 	if (!_vehicle_attitude_sub.registerCallback()) {
 		PX4_ERR("vehicle_attitude callback registration failed!");
 		return false;
 	}
-        PX4_WARN("Init Done for MulticopterAttitudeControlBackup");
+        PX4_WARN("Init MulticopterAttitudeControlBackup");
 	return true;
 }
 
