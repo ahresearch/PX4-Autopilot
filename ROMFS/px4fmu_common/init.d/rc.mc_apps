@@ -41,6 +41,7 @@ else
 		#
 		param set SYS_MC_EST_GROUP 2
 		ekf2 start &
+		#ekf2_backup start &
 	fi
 fi
 

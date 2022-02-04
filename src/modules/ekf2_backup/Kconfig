@@ -1,0 +1,5 @@
+menuconfig MODULES_EKF2_BACKUP
+	bool "ekf2_backup"
+	default n
+	---help---
+		Enable support for ekf2_backup
