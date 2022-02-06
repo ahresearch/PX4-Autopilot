@@ -216,7 +216,7 @@ bool EKF2Backup::multi_init(int imu, int mag)
 	    && (_global_position_pub.get_instance() == status_instance)) {
 
 		_instance = status_instance;
-
+                PX4_WARN("Init EKF2Backup");
 		ScheduleNow();
 		return true;
 	}

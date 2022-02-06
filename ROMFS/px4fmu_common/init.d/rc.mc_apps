@@ -40,6 +40,7 @@ else
 		# EKF2
 		#
 		param set SYS_MC_EST_GROUP 2
+		# Uncomment one or the other, not both
 		ekf2 start &
 		#ekf2_backup start &
 	fi
@@ -61,7 +62,7 @@ fi
 # Start Multicopter Rate Controller.
 #
 mc_rate_control start
-#mc_rate_control_backup start
+mc_rate_control_backup start
 
 #
 # Start Multicopter Attitude Controller.

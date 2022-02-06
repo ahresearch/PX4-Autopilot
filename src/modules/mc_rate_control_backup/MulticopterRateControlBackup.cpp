@@ -67,7 +67,7 @@ MulticopterrateControlBackup::init()
 		PX4_ERR("vehicle_angular_velocity callback registration failed!");
 		return false;
 	}
-
+        PX4_WARN("Init MulticopterrateControlBackup");
 	return true;
 }
 
@@ -181,7 +181,7 @@ MulticopterrateControlBackup::Run()
 				_thrust_sp = math::constrain(manual_control_setpoint.z, 0.0f, 1.0f);
 
 				// publish rate setpoint
-				vehicle_rates_setpoint_s v_rates_sp{};
+			     /* vehicle_rates_setpoint_s v_rates_sp{};
 				v_rates_sp.roll = _rates_sp(0);
 				v_rates_sp.pitch = _rates_sp(1);
 				v_rates_sp.yaw = _rates_sp(2);
@@ -190,7 +190,7 @@ MulticopterrateControlBackup::Run()
 				v_rates_sp.thrust_body[2] = -_thrust_sp;
 				v_rates_sp.timestamp = hrt_absolute_time();
 
-				_v_rates_sp_pub.publish(v_rates_sp);
+				_v_rates_sp_pub.publish(v_rates_sp); */
 			}
 
 		} else {
@@ -242,7 +242,7 @@ MulticopterrateControlBackup::Run()
 			rate_ctrl_status_s rate_ctrl_status{};
 			_rate_control.getRateControlStatus(rate_ctrl_status);
 			rate_ctrl_status.timestamp = hrt_absolute_time();
-			_controller_status_pub.publish(rate_ctrl_status);
+			//_controller_status_pub.publish(rate_ctrl_status);
 
 			// publish actuator controls
 			actuator_controls_s actuators{};
@@ -283,9 +283,9 @@ MulticopterrateControlBackup::Run()
 		} else if (_v_control_mode.flag_control_termination_enabled) {
 			if (!_vehicle_status.is_vtol) {
 				// publish actuator controls
-				actuator_controls_s actuators{};
+			     /* actuator_controls_s actuators{};
 				actuators.timestamp = hrt_absolute_time();
-				_actuators_0_pub.publish(actuators);
+				_actuators_0_pub.publish(actuators); */
 			}
 		}
 	}
@@ -295,26 +295,26 @@ MulticopterrateControlBackup::Run()
 
 void MulticopterrateControlBackup::publishTorqueSetpoint(const Vector3f &torque_sp, const hrt_abstime &timestamp_sample)
 {
-	vehicle_torque_setpoint_s v_torque_sp = {};
+     /* vehicle_torque_setpoint_s v_torque_sp = {};
 	v_torque_sp.timestamp = hrt_absolute_time();
 	v_torque_sp.timestamp_sample = timestamp_sample;
 	v_torque_sp.xyz[0] = (PX4_ISFINITE(torque_sp(0))) ? torque_sp(0) : 0.0f;
 	v_torque_sp.xyz[1] = (PX4_ISFINITE(torque_sp(1))) ? torque_sp(1) : 0.0f;
 	v_torque_sp.xyz[2] = (PX4_ISFINITE(torque_sp(2))) ? torque_sp(2) : 0.0f;
 
-	_vehicle_torque_setpoint_pub.publish(v_torque_sp);
+	_vehicle_torque_setpoint_pub.publish(v_torque_sp); */
 }
 
 void MulticopterrateControlBackup::publishThrustSetpoint(const hrt_abstime &timestamp_sample)
 {
-	vehicle_thrust_setpoint_s v_thrust_sp = {};
+     /* vehicle_thrust_setpoint_s v_thrust_sp = {};
 	v_thrust_sp.timestamp = hrt_absolute_time();
 	v_thrust_sp.timestamp_sample = timestamp_sample;
 	v_thrust_sp.xyz[0] = 0.0f;
 	v_thrust_sp.xyz[1] = 0.0f;
 	v_thrust_sp.xyz[2] = PX4_ISFINITE(_thrust_sp) ? -_thrust_sp : 0.0f; // Z is Down
 
-	_vehicle_thrust_setpoint_pub.publish(v_thrust_sp);
+	_vehicle_thrust_setpoint_pub.publish(v_thrust_sp); */
 }
 
 void MulticopterrateControlBackup::updateActuatorControlsStatus(const actuator_controls_s &actuators, float dt)
@@ -327,7 +327,7 @@ void MulticopterrateControlBackup::updateActuatorControlsStatus(const actuator_c
 
 	if (_energy_integration_time > 500e-3f) {
 
-		actuator_controls_status_s status;
+	     /* actuator_controls_status_s status;
 		status.timestamp = actuators.timestamp;
 
 		for (int i = 0; i < 4; i++) {
@@ -335,7 +335,7 @@ void MulticopterrateControlBackup::updateActuatorControlsStatus(const actuator_c
 			_control_energy[i] = 0.f;
 		}
 
-		_actuator_controls_status_0_pub.publish(status);
+		_actuator_controls_status_0_pub.publish(status); */
 		_energy_integration_time = 0.f;
 	}
 }
