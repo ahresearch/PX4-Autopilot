@@ -90,12 +90,16 @@ public:
 
         bool set_state();
 
-	static bool diag_spawn();
+
 
 private:
 	void Run() override;
 
+	/* Diagnostics Thread */
+
 	static void* RunDiag(void *arg);
+
+	static bool diag_spawn();
 
 	static pthread_t diag_thr;
 
