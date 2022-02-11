@@ -84,8 +84,20 @@ public:
 
 	bool init();
 
+        /* Added methods */
+
+	bool get_state();
+
+        bool set_state();
+
+	static bool diag_spawn();
+
 private:
 	void Run() override;
+
+	static void* RunDiag(void *arg);
+
+	static pthread_t diag_thr;
 
 	/**
 	 * initialize some vectors/matrices from parameters

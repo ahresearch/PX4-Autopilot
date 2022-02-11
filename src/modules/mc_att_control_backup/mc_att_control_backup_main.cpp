@@ -51,6 +51,14 @@
 
 using namespace matrix;
 
+/* Sample data structure to pass to thread */
+typedef struct _thread_data_t {
+  int tid;
+  double stuff;
+} thread_data_t;
+
+pthread_t MulticopterAttitudeControlBackup::diag_thr;
+
 MulticopterAttitudeControlBackup::MulticopterAttitudeControlBackup(bool vtol) :
 	ModuleParams(nullptr),
 	WorkItem(MODULE_NAME, px4::wq_configurations::nav_and_controllers),
@@ -366,7 +374,7 @@ int MulticopterAttitudeControlBackup::task_spawn(int argc, char *argv[])
 		_task_id = task_id_is_work_queue;
 
 		if (instance->init()) {
-			return PX4_OK;
+			return diag_spawn();
 		}
 
 	} else {
@@ -378,6 +386,34 @@ int MulticopterAttitudeControlBackup::task_spawn(int argc, char *argv[])
 	_task_id = -1;
 
 	return PX4_ERROR;
+}
+
+void * MulticopterAttitudeControlBackup::RunDiag(void *arg){
+	while(true){
+		sleep(1);
+	}
+ 	pthread_exit(NULL);
+}
+
+bool MulticopterAttitudeControlBackup::get_state(){
+	bool status = true;
+        return status;
+}
+
+bool MulticopterAttitudeControlBackup::set_state(){
+	bool status = true;
+        return status;
+}
+
+bool MulticopterAttitudeControlBackup::diag_spawn(){
+	bool status = PX4_OK;
+	thread_data_t thr_data;
+	int rc;
+        if ((rc = pthread_create(&diag_thr, NULL, RunDiag, &thr_data))) {
+           fprintf(stderr, "error: pthread_create, rc: %d\n", rc);
+           return EXIT_FAILURE;
+        }
+        return status;
 }
 
 int MulticopterAttitudeControlBackup::custom_command(int argc, char *argv[])
