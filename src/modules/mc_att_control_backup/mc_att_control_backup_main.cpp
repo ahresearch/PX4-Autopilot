@@ -44,10 +44,13 @@
  */
 
 #include "mc_att_control_backup.hpp"
+#include "mc_att_state_control.hpp"
 
 #include <drivers/drv_hrt.h>
 #include <mathlib/math/Limits.hpp>
 #include <mathlib/math/Functions.hpp>
+
+
 
 using namespace matrix;
 
@@ -231,6 +234,13 @@ MulticopterAttitudeControlBackup::Run()
 
 	perf_begin(_loop_perf);
 
+        static bool once = true;
+	if(once){
+	   set_state();
+	   get_state();
+	   once = false;
+	}
+
 	// Check if parameters have changed
 	if (_parameter_update_sub.updated()) {
 		// clear update
@@ -368,7 +378,7 @@ int MulticopterAttitudeControlBackup::task_spawn(int argc, char *argv[])
 		_task_id = task_id_is_work_queue;
 
 		if (instance->init()) {
-			return diag_spawn();
+			return instance->diag_spawn();
 		}
 
 	} else {
@@ -383,7 +393,7 @@ int MulticopterAttitudeControlBackup::task_spawn(int argc, char *argv[])
 }
 
 void * MulticopterAttitudeControlBackup::RunDiag(void *arg){
-	while(true){
+      	while(true){
 		sleep(1);
 	}
  	pthread_exit(NULL);
@@ -391,11 +401,47 @@ void * MulticopterAttitudeControlBackup::RunDiag(void *arg){
 
 bool MulticopterAttitudeControlBackup::get_state(){
 	bool status = true;
+	start_deserialization();
+        deser_manual_control_setpoint(&_manual_control_setpoint);
+	deser_v_control_mode(& _v_control_mode);
+        deser_loop_perf(& _loop_perf);
+        deser_thrust_setpoint_body(& _thrust_setpoint_body);
+        deser_man_yaw_sp(& _man_yaw_sp);
+        deser_man_tilt_max(& _man_tilt_max);
+	deser_man_x_input_filter(& _man_x_input_filter);
+	deser_man_y_input_filter(& _man_y_input_filter);
+	deser_last_run(& _last_run);
+	deser_landed(& _landed);
+	deser_reset_yaw_sp(& _reset_yaw_sp);
+	deser_vehicle_type_rotary_wing(& _vehicle_type_rotary_wing);
+	deser_vtol(& _vtol);
+	deser_vtol_tailsitter(& _vtol_tailsitter);
+	deser_vtol_in_transition_mode(& _vtol_in_transition_mode);
+	deser_quat_reset_counter(& _quat_reset_counter);
+	stop_deserialization();
         return status;
 }
 
 bool MulticopterAttitudeControlBackup::set_state(){
 	bool status = true;
+	start_serialization();
+        ser_manual_control_setpoint(& _manual_control_setpoint);
+	ser_v_control_mode(& _v_control_mode);
+        ser_loop_perf(_loop_perf);
+        ser_thrust_setpoint_body(& _thrust_setpoint_body);
+        ser_man_yaw_sp(_man_yaw_sp);
+        ser_man_tilt_max(_man_tilt_max);
+	ser_man_x_input_filter(_man_x_input_filter);
+	ser_man_y_input_filter(_man_y_input_filter);
+	ser_last_run(_last_run);
+	ser_landed(_landed);
+	ser_reset_yaw_sp(_reset_yaw_sp);
+	ser_vehicle_type_rotary_wing(_vehicle_type_rotary_wing);
+	ser_vtol(_vtol);
+	ser_vtol_tailsitter(_vtol_tailsitter);
+	ser_vtol_in_transition_mode(_vtol_in_transition_mode);
+	ser_quat_reset_counter(_quat_reset_counter);
+	stop_serialization();
         return status;
 }
 

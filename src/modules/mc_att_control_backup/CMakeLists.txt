@@ -37,11 +37,16 @@ px4_add_module(
 	MAIN mc_att_control_backup
 	COMPILE_FLAGS
 		${MAX_CUSTOM_OPT_LEVEL}
+		-g
 	SRCS
 		mc_att_control_backup_main.cpp
 		mc_att_control_backup.hpp
+		mc_att_state_control.cpp
 	DEPENDS
 		AttitudeControl
 		mathlib
 		px4_work_queue
 	)
+
+target_include_directories(modules__mc_att_control_backup PUBLIC  ../../../../../bitsery/include)
+
