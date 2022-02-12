@@ -102,11 +102,10 @@ void ser_v_control_mode(vehicle_control_mode_s * vechicle_control_mode){
 }
 
 void ser_loop_perf(perf_counter_t perf_counter){
-
+       /* No need to serialize */
 }
 
 void ser_thrust_setpoint_body(matrix::Vector3f * thrust_setpoint_body){
-
 }
 
 void ser_man_yaw_sp(float man_yaw_sp){
@@ -118,11 +117,11 @@ void ser_man_tilt_max(float man_tilt_max){
 }
 
 void ser_man_x_input_filter(AlphaFilter<float> man_x_input_filter){
-
+     /* No need to serialize */
 }
 
 void ser_man_y_input_filter(AlphaFilter<float> man_y_input_filter){
-
+     /* No need to serialize */
 }
 
 void ser_last_run(hrt_abstime last_run){
@@ -173,15 +172,15 @@ void start_deserialization(){
 }
 
 void deser_manual_control_setpoint(manual_control_setpoint_s * manual_control_setpoint){
-
+    bitsery::quickDeserialization<bitsery::InputStreamAdapter>(*s_ptr, *manual_control_setpoint);
 }
 
 void deser_v_control_mode(vehicle_control_mode_s * v_control_mode){
-
+    bitsery::quickDeserialization<bitsery::InputStreamAdapter>(*s_ptr, *v_control_mode);
 }
 
 void deser_loop_perf(perf_counter_t  *loop_perf){
-
+     /* No need to deserialize */
 }
 
 void deser_thrust_setpoint_body(matrix::Vector3f * thrust_setpoint_body){
@@ -189,23 +188,23 @@ void deser_thrust_setpoint_body(matrix::Vector3f * thrust_setpoint_body){
 }
 
 void deser_man_yaw_sp(float * man_yaw_sp){
-
+    des_ptr->value4b(*man_yaw_sp);
 }
 
 void deser_man_tilt_max(float * man_tilt_max){
-
+    des_ptr->value4b(*man_tilt_max);
 }
 
 void deser_man_x_input_filter(AlphaFilter<float> * man_x_input_filter){
-
+     /* No need to deserialize */
 }
 
 void deser_man_y_input_filter(AlphaFilter<float> * man_y_input_filter){
-
+     /* No need to deserialize */
 }
 
 void deser_last_run(hrt_abstime *last_run){
-
+    des_ptr->value8b(*last_run);
 }
 
 void deser_landed( bool * landed){
