@@ -106,6 +106,11 @@ void ser_loop_perf(perf_counter_t perf_counter){
 }
 
 void ser_thrust_setpoint_body(matrix::Vector3f * thrust_setpoint_body){
+   float arr[3];
+   thrust_setpoint_body->copyTo(arr);
+   ser_ptr->value4b(arr[0]);
+   ser_ptr->value4b(arr[1]);
+   ser_ptr->value4b(arr[2]);
 }
 
 void ser_man_yaw_sp(float man_yaw_sp){
@@ -184,7 +189,12 @@ void deser_loop_perf(perf_counter_t  *loop_perf){
 }
 
 void deser_thrust_setpoint_body(matrix::Vector3f * thrust_setpoint_body){
-
+   float arr[3];
+   des_ptr->value4b(arr[0]);
+   des_ptr->value4b(arr[1]);
+   des_ptr->value4b(arr[2]);
+   matrix::Vector3f m(arr[0],arr[1],arr[2]);
+   *thrust_setpoint_body = m;
 }
 
 void deser_man_yaw_sp(float * man_yaw_sp){

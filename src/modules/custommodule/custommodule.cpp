@@ -61,7 +61,7 @@ int CustomModule::print_status()
 
 int CustomModule::custom_command(int argc, char *argv[])
 {
-	
+
 	if (!is_running()) {
 		print_usage("not running");
 		return 1;
@@ -72,7 +72,7 @@ int CustomModule::custom_command(int argc, char *argv[])
 		get_instance()->test();
 		return 0;
 	}
-	 
+
 
 	return print_usage("unknown command");
 }
@@ -87,7 +87,7 @@ int CustomModule::test()
 
 bool CustomModule::check_gps_data(double alt)
 {
-        bool result = true; 
+        bool result = true;
 	static double prev_value = 0;
 	static double delta = 2000;
 	if(abs(alt - prev_value) > delta){
@@ -231,7 +231,7 @@ void CustomModule::run()
 			px4_usleep(50000);
 			continue;
 
-		} else{ 
+		} else{
                         if (fds[0].revents & POLLIN) {
                                 /* obtained data for the first file descriptor */
                                 struct vehicle_global_position_s global_pos;
@@ -275,24 +275,24 @@ void CustomModule::run()
                                          (double)gps_pos.lon,
                                          (double)gps_pos.alt); */
 
-                           // Do some checking here 
-			   check_gps_data(gps_pos.alt); 
+                           // Do some checking here
+			   check_gps_data(gps_pos.alt);
 			   final_gps_pos.timestamp = gps_pos.timestamp ;
                            final_gps_pos.time_utc_usec = gps_pos.time_utc_usec ;
                            final_gps_pos.fix_type = gps_pos.fix_type ;
                            final_gps_pos.lat = gps_pos.lat ;
                            final_gps_pos.lon = gps_pos.lon ;
                            final_gps_pos.alt = gps_pos.alt ;
-                           final_gps_pos.eph = gps_pos.eph ; 
-                           final_gps_pos.epv = gps_pos.epv ; 
-                           final_gps_pos.vel_m_s = gps_pos.vel_m_s ; 
-                           final_gps_pos.vel_n_m_s = gps_pos.vel_n_m_s ; 
-                           final_gps_pos.vel_e_m_s = gps_pos.vel_e_m_s ; 
-                           final_gps_pos.vel_d_m_s = gps_pos.vel_d_m_s ; 
-                           final_gps_pos.cog_rad = gps_pos.cog_rad ; 
+                           final_gps_pos.eph = gps_pos.eph ;
+                           final_gps_pos.epv = gps_pos.epv ;
+                           final_gps_pos.vel_m_s = gps_pos.vel_m_s ;
+                           final_gps_pos.vel_n_m_s = gps_pos.vel_n_m_s ;
+                           final_gps_pos.vel_e_m_s = gps_pos.vel_e_m_s ;
+                           final_gps_pos.vel_d_m_s = gps_pos.vel_d_m_s ;
+                           final_gps_pos.cog_rad = gps_pos.cog_rad ;
                            final_gps_pos.satellites_used = gps_pos.satellites_used ;
                            final_gps_pos.s_variance_m_s = gps_pos.s_variance_m_s ;
- 
+
 			   orb_publish(ORB_ID(vehicle_gps_position),gps_pub, &final_gps_pos);
 
                         }

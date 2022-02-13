@@ -233,14 +233,14 @@ MulticopterAttitudeControlBackup::Run()
 	}
 
 	perf_begin(_loop_perf);
-
+/*
         static bool once = true;
 	if(once){
 	   set_state();
 	   get_state();
 	   once = false;
 	}
-
+*/
 	// Check if parameters have changed
 	if (_parameter_update_sub.updated()) {
 		// clear update
