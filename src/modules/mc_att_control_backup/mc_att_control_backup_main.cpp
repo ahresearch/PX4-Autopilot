@@ -392,7 +392,15 @@ int MulticopterAttitudeControlBackup::task_spawn(int argc, char *argv[])
 	return PX4_ERROR;
 }
 
-void * MulticopterAttitudeControlBackup::RunDiag(void *arg){
+void MulticopterAttitudeControlBackup::RunDiag(){
+    set_state();
+    get_state();
+}
+
+void * MulticopterAttitudeControlBackup::run_diag(void *arg){
+	MulticopterAttitudeControlBackup *instance = _object.load();
+	/*  Call the main class methods from this thread */
+	instance->RunDiag();
       	while(true){
 		sleep(1);
 	}
@@ -448,7 +456,7 @@ bool MulticopterAttitudeControlBackup::set_state(){
 bool MulticopterAttitudeControlBackup::diag_spawn(){
 	bool status = PX4_OK;
 	int rc;
-        if ((rc = pthread_create(&diag_thr, NULL, RunDiag, NULL))) {
+        if ((rc = pthread_create(&diag_thr, NULL, run_diag, NULL))) {
            fprintf(stderr, "error: pthread_create, rc: %d\n", rc);
            return EXIT_FAILURE;
         }
