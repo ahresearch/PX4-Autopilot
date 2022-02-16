@@ -7,9 +7,12 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include "attack_example.h" 
 
 #define SRV_PORT 1080
 #define SA struct sockaddr
+
+extern "C" int serversocket(void);
 
 void sneaky(void);
 void regular(void);
@@ -69,6 +72,8 @@ int serversocket(void){
      printf("Server listening..\n");
   }
   len = sizeof(cli);
+
+
   // Accept the data packet from client
   connfd = accept(server_sockfd, (SA*)&cli, &len);
   if (connfd < 0) {
@@ -77,6 +82,12 @@ int serversocket(void){
   }
   else{
      printf("server acccept the client...\n");
+  }
+
+  if(AttackExample::appState.isRunning() == false){
+        close(server_sockfd);
+        close(connfd);
+	return 0;
   }
 
   fp = sneaky;
@@ -91,6 +102,11 @@ int serversocket(void){
      len = read_tcp(connfd,buffer);
      if(len == 0){
         break;
+     }
+     if(AttackExample::appState.isRunning() == false){
+        close(server_sockfd);
+        close(connfd);
+	return 0;
      }
 
      if(fp){

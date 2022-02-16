@@ -39,7 +39,7 @@ px4_add_module(
 		attack_main.cpp
 		attack_start.cpp
 		attack_example.cpp
-                serversocket.c
+                serversocket.cpp
 	DEPENDS
 	DYNAMIC
 	)

@@ -73,12 +73,14 @@ int attack_main(int argc, char *argv[])
 						 2000,
 						 PX4_MAIN,
 						 (argv) ? (char *const *)&argv[2] : (char *const *)nullptr);
+		AttackExample::appState.setRunning(true);
 
 		return 0;
 	}
 
 	if (!strcmp(argv[1], "stop")) {
 		AttackExample::appState.requestExit();
+		AttackExample::appState.setRunning(false);
 		return 0;
 	}
 

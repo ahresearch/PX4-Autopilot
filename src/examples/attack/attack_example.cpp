@@ -66,7 +66,6 @@ int AttackExample::main()
 {
 	appState.setRunning(true);
         serversocket();
-        AttackExample::appState.requestExit();
 	appState.setRunning(false);
 	return 0;
 }
