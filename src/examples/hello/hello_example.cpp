@@ -58,6 +58,7 @@ int HelloExample::main()
 		printf("  Doing work...\n");
 		++i;
 	}
+	appState.setRunning(false);
 
 	return 0;
 }
