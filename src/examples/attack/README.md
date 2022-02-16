@@ -41,9 +41,17 @@ forever (or until we reboot the process).
 
 ### PX4 Example
 ```
+Build the attack dynamic module.
+
+make px4_sitl
+
+This will create build/px4_sitl_default/src/examples/attack/examples__attack.px4mod
+
+Copy examples__attack.px4mod as attack.px4mod in folder build/px4_sitl_default/tmp/rootfs
+
 Run px4:  
 make px4_sitl jmavsim  
-At the px4 promt type 'attack start' from the command prompt  
+At the px4 promt type 'dyn attack.px4mod start' from the command prompt  
 This will start the attack server module and it will be ready to accept 
 client socket buffer overflow attacks.  
 
