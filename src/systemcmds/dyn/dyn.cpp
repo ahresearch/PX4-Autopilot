@@ -62,13 +62,22 @@ $ dyn ./hello.px4mod start
 	PRINT_MODULE_USAGE_NAME_SIMPLE("dyn", "command");
 	PRINT_MODULE_USAGE_ARG("<file>", "File containing the module", false);
 	PRINT_MODULE_USAGE_ARG("arguments...", "Arguments to the module", true);
+	PX4_INFO("Place a file there e.g. hello.px4mod");
+	PX4_INFO("Start with dyn ./hello.px4mod");
+	PX4_INFO("Working directory: ");
+        int status = system("pwd");
+	if(status != 0){
+           PX4_INFO("pwd command failed");
+	}
 }
 
 int dyn_main(int argc, char *argv[]) {
+
 	if (argc < 2) {
 		usage();
 		return 1;
 	}
+
 
 	void *handle = dlopen(argv[1], RTLD_NOW);
 
