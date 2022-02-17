@@ -77,14 +77,15 @@ int dyn_main(int argc, char *argv[]) {
 		usage();
 		return 1;
 	}
-
-
+	
 	void *handle = dlopen(argv[1], RTLD_NOW);
 
 	if (!handle) {
 		PX4_ERR("%s", dlerror());
 		return 1;
 	}
+
+	PX4_INFO("Loading module");
 
 	void *main_address = dlsym(handle, "px4_module_main");
 
@@ -96,5 +97,9 @@ int dyn_main(int argc, char *argv[]) {
 
 	auto main_function = (int (*)(int, char **))main_address;
 
-	return main_function(argc - 1, argv + 1);
+	int status = main_function(argc - 1, argv + 1);
+
+	PX4_INFO("Unloading module");
+	dlclose(handle);
+	return status;
 }
