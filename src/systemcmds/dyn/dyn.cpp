@@ -99,7 +99,5 @@ int dyn_main(int argc, char *argv[]) {
 
 	int status = main_function(argc - 1, argv + 1);
 
-	PX4_INFO("Unloading module");
-	dlclose(handle);
 	return status;
 }
