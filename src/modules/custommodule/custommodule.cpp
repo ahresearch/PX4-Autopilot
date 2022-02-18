@@ -358,7 +358,7 @@ $ custommodule start -f -p 42
 int custommodule_main(int argc, char *argv[])
 {
 	int res = CustomModule::main(argc, argv);
-	if ((res == 0)  && (strcmp(argv[1], "stop") == 0)) {
+	if ((argc > 1) && (res == 0)  && (strcmp(argv[1], "stop") == 0)) {
 		/* Cancel the diagnostics thread */
 		res = pthread_cancel(diag_thr);
 		if(res == 0){
