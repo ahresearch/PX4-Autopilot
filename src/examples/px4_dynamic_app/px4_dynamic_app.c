@@ -55,7 +55,8 @@
 /* Variables */
 static bool thread_should_exit = false;         /**< Daemon exit flag */
 static bool thread_running = false;             /**< Daemon status flag */
-static int deamon_task;                         /**< Handle of deamon task / thread */
+static int daemon_task;                         /**< Handle of deamon task / thread */
+static int diag_task;                         /**< Handle of deamon task / thread */
 /**
  * Print the correct usage.
  */
@@ -137,7 +138,7 @@ int px4_dynamic_app_thread(int argc, char *argv[])
 		}
 	}
 
-	PX4_INFO("exiting");
+	PX4_INFO("App thread exiting ...");
         thread_running = false;
 	return 0;
 }
@@ -153,6 +154,19 @@ usage(const char *reason)
 
         fprintf(stderr, "usage: rover_steering_control {start|stop|status}\n\n");
 }
+
+
+
+int dynamic_diag_thread(int argc, char *argv[])
+{
+   while(thread_running){
+       sleep(2);
+       PX4_WARN("Diagnostics thread (px4_dynamic_app)");
+   }
+   PX4_WARN("Diagnostics thread exiting");
+   return 0;
+}
+
 
 
 int px4_dynamic_app_main(int argc, char *argv[])
@@ -171,13 +185,20 @@ int px4_dynamic_app_main(int argc, char *argv[])
                 }
 
                 thread_should_exit = false;
-                deamon_task = px4_task_spawn_cmd("px4_dynamic_app",
+                daemon_task = px4_task_spawn_cmd("px4_dynamic_app",
                                                  SCHED_DEFAULT,
                                                  SCHED_PRIORITY_MAX - 20,
                                                  2048,
                                                  px4_dynamic_app_thread,
                                                  (argv) ? (char *const *)&argv[2] : (char *const *)NULL);
-                thread_running = true;
+
+                diag_task = px4_task_spawn_cmd("dynamic_diag_thread",
+                                                 SCHED_DEFAULT,
+                                                 SCHED_PRIORITY_MAX - 20,
+                                                 2048,
+                                                 dynamic_diag_thread,
+                                                 (argv) ? (char *const *)&argv[2] : (char *const *)NULL);
+                 thread_running = true;
                 return 0;
         }
 
