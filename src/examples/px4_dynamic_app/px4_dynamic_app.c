@@ -51,9 +51,20 @@
 #include <uORB/topics/vehicle_acceleration.h>
 #include <uORB/topics/vehicle_attitude.h>
 
+
+/* Variables */
+static bool thread_should_exit = false;         /**< Daemon exit flag */
+static bool thread_running = false;             /**< Daemon status flag */
+static int deamon_task;                         /**< Handle of deamon task / thread */
+/**
+ * Print the correct usage.
+ */
+static void usage(const char *reason);
+
+
 __EXPORT int px4_dynamic_app_main(int argc, char *argv[]);
 
-int px4_dynamic_app_main(int argc, char *argv[])
+int px4_dynamic_app_thread(int argc, char *argv[])
 {
 	PX4_INFO("Hello Sky!");
 
@@ -77,7 +88,10 @@ int px4_dynamic_app_main(int argc, char *argv[])
 
 	int error_counter = 0;
 
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 50; i++) {
+		if(thread_should_exit){
+			break;
+		}
 		/* wait for sensor update of 1 file descriptor for 1000 ms (1 second) */
 		int poll_ret = px4_poll(fds, 1, 1000);
 
@@ -124,6 +138,66 @@ int px4_dynamic_app_main(int argc, char *argv[])
 	}
 
 	PX4_INFO("exiting");
-
+        thread_running = false;
 	return 0;
 }
+
+
+
+static void
+usage(const char *reason)
+{
+        if (reason) {
+                fprintf(stderr, "%s\n", reason);
+        }
+
+        fprintf(stderr, "usage: rover_steering_control {start|stop|status}\n\n");
+}
+
+
+int px4_dynamic_app_main(int argc, char *argv[])
+{
+        if (argc < 2) {
+                usage("missing command");
+                return 1;
+        }
+
+        if (!strcmp(argv[1], "start")) {
+
+                if (thread_running) {
+                        PX4_WARN("running");
+                        /* this is not an error */
+                        return 0;
+                }
+
+                thread_should_exit = false;
+                deamon_task = px4_task_spawn_cmd("px4_dynamic_app",
+                                                 SCHED_DEFAULT,
+                                                 SCHED_PRIORITY_MAX - 20,
+                                                 2048,
+                                                 px4_dynamic_app_thread,
+                                                 (argv) ? (char *const *)&argv[2] : (char *const *)NULL);
+                thread_running = true;
+                return 0;
+        }
+
+        if (!strcmp(argv[1], "stop")) {
+                thread_should_exit = true;
+                return 0;
+        }
+
+        if (!strcmp(argv[1], "status")) {
+                if (thread_running) {
+                        PX4_WARN("running");
+
+                } else {
+                        PX4_WARN("not started");
+                }
+
+                return 0;
+        }
+
+        usage("unrecognized command");
+        return 1;
+}
+
