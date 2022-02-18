@@ -138,7 +138,7 @@ int px4_dynamic_app_thread(int argc, char *argv[])
 		}
 	}
 
-	PX4_INFO("App thread exiting ...");
+	PX4_ERR("App thread exiting ...");
         thread_running = false;
 	return 0;
 }
@@ -163,7 +163,7 @@ int dynamic_diag_thread(int argc, char *argv[])
        sleep(2);
        PX4_WARN("Diagnostics thread (px4_dynamic_app)");
    }
-   PX4_WARN("Diagnostics thread exiting");
+   PX4_ERR("Diagnostics thread exiting");
    return 0;
 }
 
