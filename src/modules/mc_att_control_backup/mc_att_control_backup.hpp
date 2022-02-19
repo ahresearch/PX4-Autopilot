@@ -94,6 +94,8 @@ public:
 
         static bool _to_publish;
 
+	static bool _to_pause;
+
 private:
 	void Run() override;
 

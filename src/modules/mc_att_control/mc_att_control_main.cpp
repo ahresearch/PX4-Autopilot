@@ -50,6 +50,7 @@
 #include <mathlib/math/Functions.hpp>
 
 bool MulticopterAttitudeControl::_to_publish = true;
+bool MulticopterAttitudeControl::_to_pause = false;
 using namespace matrix;
 
 MulticopterAttitudeControl::MulticopterAttitudeControl(bool vtol) :
@@ -223,6 +224,10 @@ MulticopterAttitudeControl::generate_attitude_setpoint(const Quatf &q, float dt,
 void
 MulticopterAttitudeControl::Run()
 {
+	if(_to_pause){
+	    return;
+	}
+
 	if (should_exit()) {
 		_vehicle_attitude_sub.unregisterCallback();
 		exit_and_cleanup();
@@ -417,6 +422,8 @@ https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/154099/eth
 	PRINT_MODULE_USAGE_DEFAULT_COMMANDS();
 	PRINT_MODULE_USAGE_COMMAND("block");
 	PRINT_MODULE_USAGE_COMMAND("unblock");
+	PRINT_MODULE_USAGE_COMMAND("pause");
+	PRINT_MODULE_USAGE_COMMAND("resume");
 
 	return 0;
 }
@@ -453,6 +460,18 @@ int MulticopterAttitudeControl::my_main(int argc, char *argv[]){
                if (strcmp(argv[1], "unblock") == 0) {
                     MulticopterAttitudeControl::_to_publish = true;
 	            PX4_WARN("Unblock publishing!");
+		    return 0;
+	        }
+
+               if (strcmp(argv[1], "pause") == 0) {
+                    MulticopterAttitudeControl::_to_pause = true;
+	            PX4_WARN("Pause running!");
+		    return 0;
+	        }
+
+                if (strcmp(argv[1], "resume") == 0) {
+                    MulticopterAttitudeControl::_to_pause = false;
+	            PX4_WARN("Resume running!");
 		    return 0;
 	        }
 

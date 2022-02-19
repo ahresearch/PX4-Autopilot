@@ -55,6 +55,7 @@ using namespace matrix;
 pthread_t MulticopterAttitudeControlBackup::diag_thr;
 
 bool MulticopterAttitudeControlBackup::_to_publish = true;
+bool MulticopterAttitudeControlBackup::_to_pause = false;
 
 MulticopterAttitudeControlBackup::MulticopterAttitudeControlBackup(bool vtol) :
 	ModuleParams(nullptr),
@@ -228,6 +229,10 @@ MulticopterAttitudeControlBackup::generate_attitude_setpoint(const Quatf &q, flo
 void
 MulticopterAttitudeControlBackup::Run()
 {
+	if(_to_pause){
+	    return;
+	}
+
 	if (should_exit()) {
 		_vehicle_attitude_sub.unregisterCallback();
 		exit_and_cleanup();
@@ -501,6 +506,8 @@ https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/154099/eth
 	PRINT_MODULE_USAGE_DEFAULT_COMMANDS();
 	PRINT_MODULE_USAGE_COMMAND("block");
 	PRINT_MODULE_USAGE_COMMAND("unblock");
+	PRINT_MODULE_USAGE_COMMAND("pause");
+	PRINT_MODULE_USAGE_COMMAND("resume");
 
 	return 0;
 }
@@ -539,6 +546,19 @@ int MulticopterAttitudeControlBackup::my_main(int argc, char *argv[]){
 	            PX4_WARN("Unblock publishing!");
 		    return 0;
 	        }
+
+                if (strcmp(argv[1], "pause") == 0) {
+                    MulticopterAttitudeControlBackup::_to_pause = true;
+	            PX4_WARN("Pause running!");
+		    return 0;
+	        }
+
+                if (strcmp(argv[1], "resume") == 0) {
+                    MulticopterAttitudeControlBackup::_to_pause = false;
+	            PX4_WARN("Resume running!");
+		    return 0;
+	        }
+
 
 		lock_module(); // Lock here, as the method could access _object.
 		int ret = MulticopterAttitudeControlBackup::custom_command(argc - 1, argv + 1);
