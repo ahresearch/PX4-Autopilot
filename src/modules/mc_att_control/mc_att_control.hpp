@@ -84,8 +84,26 @@ public:
 
 	bool init();
 
+	static int my_main(int argc, char *argv[]);
+
+        static bool _to_publish;
+
 private:
 	void Run() override;
+
+	static void lock_module()
+	{
+		pthread_mutex_lock(&px4_modules_mutex);
+	}
+
+	/**
+	 * @brief unlock_module Mutex to unlock the module thread.
+	 */
+	static void unlock_module()
+	{
+		pthread_mutex_unlock(&px4_modules_mutex);
+	}
+
 
 	/**
 	 * initialize some vectors/matrices from parameters

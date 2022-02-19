@@ -90,8 +90,9 @@ public:
 
         bool set_state();
 
+	static int my_main(int argc, char *argv[]);
 
-
+        static bool _to_publish;
 
 private:
 	void Run() override;
@@ -104,6 +105,20 @@ private:
 	bool diag_spawn();
 
 	static pthread_t diag_thr;
+
+
+	static void lock_module()
+	{
+		pthread_mutex_lock(&px4_modules_mutex);
+	}
+
+	/**
+	 * @brief unlock_module Mutex to unlock the module thread.
+	 */
+	static void unlock_module()
+	{
+		pthread_mutex_unlock(&px4_modules_mutex);
+	}
 
 	/**
 	 * initialize some vectors/matrices from parameters
@@ -153,6 +168,7 @@ private:
 	bool _vtol{false};
 	bool _vtol_tailsitter{false};
 	bool _vtol_in_transition_mode{false};
+
 
 	uint8_t _quat_reset_counter{0};
 

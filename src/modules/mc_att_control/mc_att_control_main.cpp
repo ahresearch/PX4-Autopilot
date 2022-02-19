@@ -49,6 +49,7 @@
 #include <mathlib/math/Limits.hpp>
 #include <mathlib/math/Functions.hpp>
 
+bool MulticopterAttitudeControl::_to_publish = true;
 using namespace matrix;
 
 MulticopterAttitudeControl::MulticopterAttitudeControl(bool vtol) :
@@ -214,8 +215,9 @@ MulticopterAttitudeControl::generate_attitude_setpoint(const Quatf &q, float dt,
 	attitude_setpoint.thrust_body[2] = -throttle_curve(math::constrain(_manual_control_setpoint.z, 0.0f,
 					   1.0f));
 	attitude_setpoint.timestamp = hrt_absolute_time();
-
-	_vehicle_attitude_setpoint_pub.publish(attitude_setpoint);
+        if(_to_publish){
+	    _vehicle_attitude_setpoint_pub.publish(attitude_setpoint);
+	}
 }
 
 void
@@ -329,16 +331,17 @@ MulticopterAttitudeControl::Run()
 					rates_sp += Vector3f(pid_autotune.rate_sp);
 				}
 			}
+                        if(_to_publish){
+			   // publish rate setpoint
+			   vehicle_rates_setpoint_s v_rates_sp{};
+			   v_rates_sp.roll = rates_sp(0);
+			   v_rates_sp.pitch = rates_sp(1);
+			   v_rates_sp.yaw = rates_sp(2);
+			   _thrust_setpoint_body.copyTo(v_rates_sp.thrust_body);
+			   v_rates_sp.timestamp = now;
 
-			// publish rate setpoint
-			vehicle_rates_setpoint_s v_rates_sp{};
-			v_rates_sp.roll = rates_sp(0);
-			v_rates_sp.pitch = rates_sp(1);
-			v_rates_sp.yaw = rates_sp(2);
-			_thrust_setpoint_body.copyTo(v_rates_sp.thrust_body);
-			v_rates_sp.timestamp = now;
-
-			_v_rates_sp_pub.publish(v_rates_sp);
+			   _v_rates_sp_pub.publish(v_rates_sp);
+			}
 		}
 
 		// reset yaw setpoint during transitions, tailsitter.cpp generates
@@ -412,11 +415,54 @@ https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/154099/eth
 	PRINT_MODULE_USAGE_COMMAND("start");
 	PRINT_MODULE_USAGE_ARG("vtol", "VTOL mode", true);
 	PRINT_MODULE_USAGE_DEFAULT_COMMANDS();
+	PRINT_MODULE_USAGE_COMMAND("block");
+	PRINT_MODULE_USAGE_COMMAND("unblock");
 
 	return 0;
 }
 
+int MulticopterAttitudeControl::my_main(int argc, char *argv[]){
+
+		if (argc <= 1 ||
+		    strcmp(argv[1], "-h")    == 0 ||
+		    strcmp(argv[1], "help")  == 0 ||
+		    strcmp(argv[1], "info")  == 0 ||
+		    strcmp(argv[1], "usage") == 0) {
+			return MulticopterAttitudeControl::print_usage();
+		}
+
+		if (strcmp(argv[1], "start") == 0) {
+			// Pass the 'start' argument too, because later on px4_getopt() will ignore the first argument.
+			return start_command_base(argc - 1, argv + 1);
+		}
+
+		if (strcmp(argv[1], "status") == 0) {
+			return status_command();
+		}
+
+		if (strcmp(argv[1], "stop") == 0) {
+			return stop_command();
+		}
+
+                if (strcmp(argv[1], "block") == 0) {
+                    MulticopterAttitudeControl::_to_publish = false;
+	            PX4_WARN("Block publishing!");
+		    return 0;
+	        }
+
+               if (strcmp(argv[1], "unblock") == 0) {
+                    MulticopterAttitudeControl::_to_publish = true;
+	            PX4_WARN("Unblock publishing!");
+		    return 0;
+	        }
+
+		lock_module(); // Lock here, as the method could access _object.
+		int ret = MulticopterAttitudeControl::custom_command(argc - 1, argv + 1);
+		unlock_module();
+        return ret;
+}
+
 int mc_att_control_main(int argc, char *argv[])
 {
-	return MulticopterAttitudeControl::main(argc, argv);
+	return MulticopterAttitudeControl::my_main(argc,argv);
 }
