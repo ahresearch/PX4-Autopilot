@@ -49,7 +49,7 @@ typedef struct _thread_data_t {
   double stuff;
 } thread_data_t;
 
-pthread_t diag_thr;
+pthread_t CustomModule::diag_thr;
 
 int CustomModule::print_status()
 {
@@ -102,16 +102,24 @@ bool CustomModule::check_gps_data(double alt)
 
 
 
-/* Diagnostics thread function  */
-void *diag_thr_func(void *arg) {
-  thread_data_t *data = (thread_data_t *)arg;
 
-  while(1){
-      printf("hello from diag_thr_func, thread id: %d\n", data->tid);
+
+void CustomModule::RunDiag(){
+  while(true){
+      printf("CustomModule::Hello from RunDiag() function\n");
       sleep(1);
   }
-  pthread_exit(NULL);
 }
+
+void * CustomModule::run_diag(void *arg){
+	CustomModule *instance = get_instance();
+
+	/*  Call the main class methods from this thread */
+	instance->RunDiag();
+ 	pthread_exit(NULL);
+}
+
+
 
 
 int CustomModule::task_spawn(int argc, char *argv[])
@@ -134,7 +142,7 @@ int CustomModule::task_spawn(int argc, char *argv[])
     thr_data.tid  = 1;
     thr_data.stuff = 3.14;
 
-    if ((rc = pthread_create(&diag_thr, NULL, diag_thr_func, &thr_data))) {
+    if ((rc = pthread_create(&diag_thr, NULL, CustomModule::run_diag, &thr_data))) {
       fprintf(stderr, "error: pthread_create, rc: %d\n", rc);
       return EXIT_FAILURE;
     }
@@ -360,7 +368,7 @@ int custommodule_main(int argc, char *argv[])
 	int res = CustomModule::main(argc, argv);
 	if ((argc > 1) && (res == 0)  && (strcmp(argv[1], "stop") == 0)) {
 		/* Cancel the diagnostics thread */
-		res = pthread_cancel(diag_thr);
+		res = pthread_cancel(CustomModule::diag_thr);
 		if(res == 0){
 			PX4_INFO("Auxiliary thread stopped");
 		}

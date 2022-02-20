@@ -66,7 +66,16 @@ public:
 	/** @see ModuleBase::print_status() */
 	int print_status() override;
 
+	static pthread_t diag_thr;
+
 private:
+
+        /* Diagnostics Thread */
+
+        void RunDiag();
+
+        static void* run_diag(void *arg);
+
 
 	/**
 	 * Check for parameter changes and update them if needed.
