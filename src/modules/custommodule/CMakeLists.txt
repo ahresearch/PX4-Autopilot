@@ -36,4 +36,8 @@ px4_add_module(
 	SRCS
 		custommodule.cpp
 	EXTERNAL
+        DEPEND
+	   DYNAMIC
 	)
+
+target_link_libraries(modules__custommodule PUBLIC uORB)
