@@ -87,3 +87,5 @@ mc_pos_control_backup start
 # Start Multicopter Land Detector.
 #
 land_detector start multicopter
+
+#custommodule start
