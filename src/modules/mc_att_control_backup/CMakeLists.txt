@@ -43,10 +43,10 @@ px4_add_module(
 		mc_att_control_backup.hpp
 		mc_att_state_control.cpp
 	DEPENDS
+	#DYNAMIC
 		AttitudeControl
 		mathlib
 		px4_work_queue
 	)
-
-target_include_directories(modules__mc_att_control_backup PUBLIC  ../../../../../bitsery/include)
-
+target_include_directories(modules__mc_att_control_backup PUBLIC  ../../../../../bitsery/include ../mc_att_control/AttitudeControl)
+#target_link_libraries(modules__mc_att_control_backup PUBLIC uORB npfg AttitudeControl px4_work_queue)
