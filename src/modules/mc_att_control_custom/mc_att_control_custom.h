@@ -33,20 +33,94 @@
 
 #pragma once
 
+#include <lib/mixer/MixerBase/Mixer.hpp> // Airmode
+#include <matrix/matrix/math.hpp>
+#include <perf/perf_counter.h>
+#include <px4_platform_common/px4_config.h>
+#include <px4_platform_common/defines.h>
 #include <px4_platform_common/module.h>
 #include <px4_platform_common/module_params.h>
+#include <px4_platform_common/posix.h>
+#include <px4_platform_common/px4_work_queue/WorkItem.hpp>
+#include <uORB/Publication.hpp>
 #include <uORB/Subscription.hpp>
+#include <uORB/SubscriptionCallback.hpp>
+#include <uORB/topics/manual_control_setpoint.h>
 #include <uORB/topics/parameter_update.h>
+#include <uORB/topics/autotune_attitude_control_status.h>
+#include <uORB/topics/vehicle_attitude.h>
+#include <uORB/topics/vehicle_attitude_setpoint.h>
+#include <uORB/topics/vehicle_control_mode.h>
+#include <uORB/topics/vehicle_rates_setpoint.h>
+#include <uORB/topics/vehicle_status.h>
+#include <uORB/topics/vehicle_land_detected.h>
+#include <vtol_att_control/vtol_type.h>
+#include <lib/mathlib/math/filter/AlphaFilter.hpp>
+
+#include <AttitudeControl.hpp>
+
+using namespace time_literals;
 
 extern "C" __EXPORT int mc_att_control_custom_main(int argc, char *argv[]);
+
+
+namespace uORB
+{
+// Subscription with callback
+class SubscriptionCallbackMC : public SubscriptionCallback
+{
+public:
+	/**
+	 * Constructor
+	 *
+	 * @param meta The uORB metadata (usually from the ORB_ID() macro) for the topic.
+	 * @param instance The instance for multi sub.
+	 */
+	SubscriptionCallbackMC( const orb_metadata *meta, uint8_t instance = 0) :
+		SubscriptionCallback(meta, 0, instance)	// interval 0,
+
+	{
+	}
+
+	virtual ~SubscriptionCallbackMC() = default;
+
+	void call() override
+	{
+		// schedule immediately if updated (queue depth or subscription interval)
+		if ((_required_updates == 0)
+		    || (Manager::updates_available(_subscription.get_node(), _subscription.get_last_generation()) >= _required_updates)) {
+			if (updated()) {
+			   // Updates came
+			   PX4_WARN("Updated");
+			}
+		}
+	}
+
+	/**
+	 * Optionally limit callback until more samples are available.
+	 *
+	 * @param required_updates Number of queued updates required before a callback can be called.
+	 */
+	void set_required_updates(uint8_t required_updates)
+	{
+		// TODO: constrain to queue depth?
+		_required_updates = required_updates;
+	}
+
+private:
+
+	uint8_t _required_updates{0};
+};
+
+} // End of namespace
 
 
 class MulticopterAttitudeControlCustom : public ModuleBase<MulticopterAttitudeControlCustom>, public ModuleParams
 {
 public:
-	MulticopterAttitudeControlCustom(int example_param, bool example_flag);
+	MulticopterAttitudeControlCustom(bool vtol = false);
 
-	virtual ~MulticopterAttitudeControlCustom() = default;
+	virtual ~MulticopterAttitudeControlCustom() override;
 
 	/** @see ModuleBase */
 	static int task_spawn(int argc, char *argv[]);
@@ -66,7 +140,24 @@ public:
 	/** @see ModuleBase::print_status() */
 	int print_status() override;
 
+	bool init();
+
+	int test();
+
 	static pthread_t diag_thr;
+
+	 /* Added methods */
+
+	bool get_state();
+
+        bool set_state();
+
+	static int my_main(int argc, char *argv[]);
+
+        static bool _to_publish;
+
+	static bool _to_pause;
+
 
 private:
 
@@ -76,26 +167,100 @@ private:
 
         static void* run_diag(void *arg);
 
+	static bool diag_spawn();
+
+
+        /**
+	 * @brief lock_module Mutex to unlock the module thread.
+	 */
+	static void lock_module()
+	{
+		pthread_mutex_lock(&px4_modules_mutex);
+	}
 
 	/**
-	 * Check for parameter changes and update them if needed.
-	 * @param parameter_update_sub uorb subscription to parameter_update
-	 * @param force for a parameter update
+	 * @brief unlock_module Mutex to unlock the module thread.
 	 */
-	void parameters_update(bool force = false);
+	static void unlock_module()
+	{
+		pthread_mutex_unlock(&px4_modules_mutex);
+	}
 
-	int test(void);
 
-	bool check_gps_data(double lat);
+/**
+	 * initialize some vectors/matrices from parameters
+	 */
+	void		parameters_updated();
 
+	float		throttle_curve(float throttle_stick_input);
+
+	/**
+	 * Generate & publish an attitude setpoint from stick inputs
+	 */
+	void		generate_attitude_setpoint(const matrix::Quatf &q, float dt, bool reset_yaw_sp);
+
+	AttitudeControl _attitude_control; ///< class for attitude control calculations
+
+	uORB::SubscriptionInterval _parameter_update_sub{ORB_ID(parameter_update), 1_s};
+
+	uORB::Subscription _vehicle_attitude_setpoint_sub{ORB_ID(vehicle_attitude_setpoint)};
+	uORB::Subscription _v_control_mode_sub{ORB_ID(vehicle_control_mode)};		/**< vehicle control mode subscription */
+	uORB::Subscription _autotune_attitude_control_status_sub{ORB_ID(autotune_attitude_control_status)};
+	uORB::Subscription _manual_control_setpoint_sub{ORB_ID(manual_control_setpoint)};	/**< manual control setpoint subscription */
+	uORB::Subscription _vehicle_status_sub{ORB_ID(vehicle_status)};			/**< vehicle status subscription */
+	uORB::Subscription _vehicle_land_detected_sub{ORB_ID(vehicle_land_detected)};	/**< vehicle land detected subscription */
+
+	uORB::SubscriptionCallbackMC _vehicle_attitude_sub{ ORB_ID(vehicle_attitude)};
+
+	uORB::Publication<vehicle_rates_setpoint_s>	_v_rates_sp_pub{ORB_ID(vehicle_rates_setpoint)};			/**< rate setpoint publication */
+	uORB::Publication<vehicle_attitude_setpoint_s>	_vehicle_attitude_setpoint_pub;
+
+	struct manual_control_setpoint_s	_manual_control_setpoint {};	/**< manual control setpoint */
+	struct vehicle_control_mode_s		_v_control_mode {};	/**< vehicle control mode */
+
+	perf_counter_t	_loop_perf;			/**< loop duration performance counter */
+
+	matrix::Vector3f _thrust_setpoint_body; ///< body frame 3D thrust vector
+
+	float _man_yaw_sp{0.f};				/**< current yaw setpoint in manual mode */
+	float _man_tilt_max;			/**< maximum tilt allowed for manual flight [rad] */
+	AlphaFilter<float> _man_x_input_filter;
+	AlphaFilter<float> _man_y_input_filter;
+
+	hrt_abstime _last_run{0};
+
+	bool _landed{true};
+	bool _reset_yaw_sp{true};
+	bool _vehicle_type_rotary_wing{true};
+	bool _vtol{false};
+	bool _vtol_tailsitter{false};
+	bool _vtol_in_transition_mode{false};
+
+
+	uint8_t _quat_reset_counter{0};
 
 	DEFINE_PARAMETERS(
-		(ParamInt<px4::params::SYS_AUTOSTART>) _param_sys_autostart,   /**< example parameter */
-		(ParamInt<px4::params::SYS_AUTOCONFIG>) _param_sys_autoconfig  /**< another parameter */
+		(ParamFloat<px4::params::MC_ROLL_P>) _param_mc_roll_p,
+		(ParamFloat<px4::params::MC_PITCH_P>) _param_mc_pitch_p,
+		(ParamFloat<px4::params::MC_YAW_P>) _param_mc_yaw_p,
+		(ParamFloat<px4::params::MC_YAW_WEIGHT>) _param_mc_yaw_weight,
+
+		(ParamFloat<px4::params::MC_ROLLRATE_MAX>) _param_mc_rollrate_max,
+		(ParamFloat<px4::params::MC_PITCHRATE_MAX>) _param_mc_pitchrate_max,
+		(ParamFloat<px4::params::MC_YAWRATE_MAX>) _param_mc_yawrate_max,
+
+		(ParamFloat<px4::params::MPC_MAN_Y_MAX>) _param_mpc_man_y_max,			/**< scaling factor from stick to yaw rate */
+
+		/* Stabilized mode params */
+		(ParamFloat<px4::params::MPC_MAN_TILT_MAX>) _param_mpc_man_tilt_max,			/**< maximum tilt allowed for manual flight */
+		(ParamFloat<px4::params::MPC_MANTHR_MIN>) _param_mpc_manthr_min,			/**< minimum throttle for stabilized */
+		(ParamFloat<px4::params::MPC_THR_MAX>) _param_mpc_thr_max,				/**< maximum throttle for stabilized */
+		(ParamFloat<px4::params::MPC_THR_HOVER>)
+		_param_mpc_thr_hover,			/**< throttle at which vehicle is at hover equilibrium */
+		(ParamInt<px4::params::MPC_THR_CURVE>) _param_mpc_thr_curve,				/**< throttle curve behavior */
+
+		(ParamInt<px4::params::MC_AIRMODE>) _param_mc_airmode,
+		(ParamFloat<px4::params::MC_MAN_TILT_TAU>) _param_mc_man_tilt_tau
 	)
-
-	// Subscriptions
-	uORB::Subscription	_parameter_update_sub{ORB_ID(parameter_update)};
-
 };
 
