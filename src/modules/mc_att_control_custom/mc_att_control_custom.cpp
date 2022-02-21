@@ -97,54 +97,27 @@ int MulticopterAttitudeControlCustom::task_spawn(int argc, char *argv[])
 		return -errno;
 	}
 
-        diag_spawn();
-
 	return 0;
 }
 
 MulticopterAttitudeControlCustom *MulticopterAttitudeControlCustom::instantiate(int argc, char *argv[])
 {
-	int example_param = 0;
-	bool example_flag = false;
-	bool error_flag = false;
+	bool vtol = false;
 
-	int myoptind = 1;
-	int ch;
-	const char *myoptarg = nullptr;
-
-	// parse CLI arguments
-	while ((ch = px4_getopt(argc, argv, "p:f", &myoptind, &myoptarg)) != EOF) {
-		switch (ch) {
-		case 'p':
-			example_param = (int)strtol(myoptarg, nullptr, 10);
-	                PX4_INFO("parameter: %d",example_param);
-			break;
-
-		case 'f':
-			example_flag = true;
-	                PX4_INFO("flag is true");
-			break;
-
-		case '?':
-			error_flag = true;
-			break;
-
-		default:
-			PX4_WARN("unrecognized flag");
-			error_flag = true;
-			break;
+	if (argc > 1) {
+		if (strcmp(argv[1], "vtol") == 0) {
+			vtol = true;
 		}
 	}
 
-	if (error_flag) {
-		return nullptr;
-	}
-
-	PX4_WARN("Example flag %d",example_flag);
-	MulticopterAttitudeControlCustom *instance = new MulticopterAttitudeControlCustom();
+	MulticopterAttitudeControlCustom *instance = new MulticopterAttitudeControlCustom(vtol);
 
 	if (instance == nullptr) {
 		PX4_ERR("alloc failed");
+	}
+	else{
+           diag_spawn();
+	   instance->init();
 	}
 
 	return instance;
@@ -320,6 +293,7 @@ MulticopterAttitudeControlCustom::~MulticopterAttitudeControlCustom()
 bool
 MulticopterAttitudeControlCustom::init()
 {
+	_vehicle_attitude_sub.set_required_updates(1);
 	if (!_vehicle_attitude_sub.registerCallback()) {
 		PX4_ERR("vehicle_attitude callback registration failed!");
 		return false;
