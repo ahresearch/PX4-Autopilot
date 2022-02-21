@@ -86,14 +86,7 @@ public:
 
 	void call() override
 	{
-		// schedule immediately if updated (queue depth or subscription interval)
-		if ((_required_updates == 0)
-		    || (Manager::updates_available(_subscription.get_node(), _subscription.get_last_generation()) >= _required_updates)) {
-			if (updated()) {
-			   // Updates came
-			   PX4_WARN("Updated");
-			}
-		}
+
 	}
 
 	/**
