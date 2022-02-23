@@ -14,8 +14,11 @@ typedef struct _thread_data_t {
 /* Thread run function */
 void * run_thread(void *arg){
 	_thread_data_t * thr_data =  (_thread_data_t *)arg;
+  char local_stuff[256];
+  strcpy(local_stuff,thr_data->stuff);
 	while(true){
       printf("run_thread() func: %s - addr: %p\n",thr_data->stuff,thr_data->stuff);
+      strcpy(thr_data->stuff,local_stuff);
       sleep(1);
   }
  	pthread_exit(NULL);
