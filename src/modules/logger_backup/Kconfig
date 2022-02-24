@@ -1,0 +1,5 @@
+menuconfig MODULES_LOGGER_BACKUP
+	bool "logger_backup"
+	default n
+	---help---
+		Enable support for logger_backup
