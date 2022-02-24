@@ -32,8 +32,11 @@
 ############################################################################
 px4_add_module(
 	MODULE examples__component_manager
-	MAIN component_manager 
+	MAIN component_manager
 	SRCS
-		component_manager.c
+		component_manager.cpp
 	DEPENDS
 	)
+
+target_include_directories(examples__component_manager  PUBLIC  ../../../platforms/posix/src/px4/common/px4_daemon/)
+target_link_libraries(examples__component_manager PUBLIC uORB)
