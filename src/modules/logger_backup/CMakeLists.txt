@@ -41,7 +41,19 @@ px4_add_module(
 	SRCS
 		logger_backup.cpp
 	DEPENDS
+	        DYNAMIC
 		version
 	)
 
+target_compile_definitions(modules__logger_backup
+        PUBLIC
+                PX4_BOARD_NAME="${PX4_BOARD_NAME}"
+                PX4_BOARD_LABEL="${PX4_BOARD_LABEL}"
+        )
+
+
 target_include_directories(modules__logger_backup PUBLIC  ../../../../../bitsery/include ../logger)
+target_link_libraries(modules__logger_backup PRIVATE git_ver)
+target_link_libraries(modules__logger_backup PRIVATE drivers_board)
+target_link_libraries(modules__logger_backup PUBLIC uORB modules__logger)
+
