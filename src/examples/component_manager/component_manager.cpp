@@ -53,8 +53,18 @@
 #include <pxh.h>
 
 extern "C" int component_manager_main(int argc, char *argv[]);
+/**
+ * Print the correct usage.
+ */
+static void usage(const char *reason);
 
-int component_manager_main(int argc, char *argv[])
+
+/* Variables */
+static bool thread_should_exit = false;         /**< Daemon exit flag */
+static bool thread_running = false;             /**< Daemon status flag */
+static int daemon_task;                         /**< Handle of deamon task / thread */
+
+int component_manager_thread(int argc, char *argv[])
 {
 	PX4_INFO("Component Manager!");
 
@@ -62,7 +72,76 @@ int component_manager_main(int argc, char *argv[])
 
 	px4_daemon::Pxh::process_line("px4_simple_app",true);
 
-	PX4_INFO("exiting");
+	while(!thread_should_exit){
+	    sleep(1);
+
+	}
+
+	thread_running = false;
+
+	PX4_INFO("Component manager Exiting");
 
 	return 0;
 }
+
+
+
+static void
+usage(const char *reason)
+{
+        if (reason) {
+                fprintf(stderr, "%s\n", reason);
+        }
+
+        fprintf(stderr, "usage: rover_steering_control {start|stop|status}\n\n");
+}
+
+
+
+int component_manager_main(int argc, char *argv[])
+{
+        if (argc < 2) {
+                usage("missing command");
+                return 1;
+        }
+
+        if (!strcmp(argv[1], "start")) {
+
+                if (thread_running) {
+                        PX4_WARN("running");
+                        /* this is not an error */
+                        return 0;
+                }
+
+                thread_should_exit = false;
+                daemon_task = px4_task_spawn_cmd("component_manager_thread",
+                                                 SCHED_DEFAULT,
+                                                 SCHED_PRIORITY_MAX - 20,
+                                                 2048,
+                                                 component_manager_thread,
+                                                 (argv) ? (char *const *)&argv[2] : (char *const *)NULL);
+
+                 thread_running = true;
+                return 0;
+        }
+
+        if (!strcmp(argv[1], "stop")) {
+                thread_should_exit = true;
+                return 0;
+        }
+
+        if (!strcmp(argv[1], "status")) {
+                if (thread_running) {
+                        PX4_WARN("running");
+
+                } else {
+                        PX4_WARN("not started");
+                }
+
+                return 0;
+        }
+
+        usage("unrecognized command");
+        return 1;
+}
+
