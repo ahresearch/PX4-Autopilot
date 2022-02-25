@@ -67,12 +67,21 @@ static int daemon_task;                         /**< Handle of deamon task / thr
 int component_manager_thread(int argc, char *argv[])
 {
 	PX4_INFO("Component Manager!");
-
-	px4_daemon::Pxh::process_line("hello start",true);
-
-	px4_daemon::Pxh::process_line("px4_simple_app",true);
+        bool alternate = true;
 
 	while(!thread_should_exit){
+            if(alternate){
+               PX4_INFO("Blocking mc_att_control_backup!");
+               px4_daemon::Pxh::process_line("mc_att_control_backup pause",true);
+               px4_daemon::Pxh::process_line("mc_att_control resume",true);
+               alternate = false;
+            }
+            else{
+               PX4_INFO("Unblocking mc_att_control_backup!");
+               px4_daemon::Pxh::process_line("mc_att_control_backup resume",true);
+               px4_daemon::Pxh::process_line("mc_att_control pause",true);
+               alternate = true;
+            }
 	    sleep(1);
 
 	}
