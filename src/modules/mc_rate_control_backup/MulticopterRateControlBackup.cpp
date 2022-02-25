@@ -392,7 +392,7 @@ The controller has a PID loop for angular rate error.
 
 )DESCR_STR");
 
-	PRINT_MODULE_USAGE_NAME("mc_rate_control", "controller");
+	PRINT_MODULE_USAGE_NAME("mc_rate_control_backup", "controller");
 	PRINT_MODULE_USAGE_COMMAND("start");
 	PRINT_MODULE_USAGE_ARG("vtol", "VTOL mode", true);
 	PRINT_MODULE_USAGE_DEFAULT_COMMANDS();
