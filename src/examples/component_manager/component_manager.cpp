@@ -71,15 +71,17 @@ int component_manager_thread(int argc, char *argv[])
 
 	while(!thread_should_exit){
             if(alternate){
-               PX4_INFO("Blocking mc_att_control_backup!");
-               px4_daemon::Pxh::process_line("mc_att_control_backup pause",true);
-               px4_daemon::Pxh::process_line("mc_att_control resume",true);
+               PX4_INFO("Starting mc_att_control!");
+               px4_daemon::Pxh::process_line("mc_att_control start",true);
+               PX4_INFO("Stopping mc_att_control_backup!");
+               px4_daemon::Pxh::process_line("mc_att_control_backup stop",true);
                alternate = false;
             }
             else{
-               PX4_INFO("Unblocking mc_att_control_backup!");
-               px4_daemon::Pxh::process_line("mc_att_control_backup resume",true);
-               px4_daemon::Pxh::process_line("mc_att_control pause",true);
+               PX4_INFO("Starting mc_att_control_backup!");
+               px4_daemon::Pxh::process_line("mc_att_control_backup start",true);
+               PX4_INFO("Stopping mc_att_control_backup!");
+               px4_daemon::Pxh::process_line("mc_att_control stop",true);
                alternate = true;
             }
 	    sleep(1);
