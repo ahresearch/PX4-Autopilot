@@ -73,7 +73,7 @@ MulticopterAttitudeControl::MulticopterAttitudeControl(bool vtol) :
 
 MulticopterAttitudeControl::~MulticopterAttitudeControl()
 {
-	perf_free(_loop_perf);
+      perf_free(_loop_perf);
 }
 
 bool
@@ -220,6 +220,23 @@ MulticopterAttitudeControl::generate_attitude_setpoint(const Quatf &q, float dt,
 	    _vehicle_attitude_setpoint_pub.publish(attitude_setpoint);
 	}
 }
+
+void MulticopterAttitudeControl::exit_and_cleanup()
+{
+		// Take the lock here:
+		// - if startup fails and we're faster than the parent thread, it will set
+		//   _task_id and subsequently it will look like the task is running.
+		// - deleting the object must take place inside the lock.
+		lock_module();
+
+		//delete _object.load();
+		_object.store(nullptr);
+
+		_task_id = -1; // Signal a potentially waiting thread for the module to exit that it can continue.
+		unlock_module();
+}
+
+
 
 void
 MulticopterAttitudeControl::Run()

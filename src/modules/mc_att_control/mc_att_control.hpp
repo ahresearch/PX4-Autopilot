@@ -86,6 +86,8 @@ public:
 
 	static int my_main(int argc, char *argv[]);
 
+	static void exit_and_cleanup();
+
         static bool _to_publish;
 
 	static bool _to_pause;

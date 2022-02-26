@@ -226,6 +226,22 @@ MulticopterAttitudeControlBackup::generate_attitude_setpoint(const Quatf &q, flo
 	}
 }
 
+void MulticopterAttitudeControlBackup::exit_and_cleanup()
+	{
+		// Take the lock here:
+		// - if startup fails and we're faster than the parent thread, it will set
+		//   _task_id and subsequently it will look like the task is running.
+		// - deleting the object must take place inside the lock.
+		lock_module();
+
+		//delete _object.load();
+		_object.store(nullptr);
+
+		_task_id = -1; // Signal a potentially waiting thread for the module to exit that it can continue.
+		unlock_module();
+	}
+
+
 void
 MulticopterAttitudeControlBackup::Run()
 {
