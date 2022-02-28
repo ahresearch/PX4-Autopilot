@@ -54,6 +54,7 @@ px4_add_module(
 		state_machine_helper.cpp
 		worker_thread.cpp
 	DEPENDS
+	        #DYNAMIC
 		circuit_breaker
 		failure_detector
 		geo
@@ -66,7 +67,8 @@ px4_add_module(
 	)
 
 if(PX4_TESTING)
-	add_subdirectory(commander_tests)
+	#	add_subdirectory(commander_tests)
 endif()
 
 px4_add_unit_gtest(SRC mag_calibration_test.cpp LINKLIBS modules__commander)
+#target_link_libraries(modules__commander PUBLIC uORB npfg geofence_breach_avoidance landing_slope motion_planning PreFlightCheck failure_detector systemlib hysteresis world_magnetic_model)
