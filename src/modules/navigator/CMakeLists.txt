@@ -51,8 +51,11 @@ px4_add_module(
 		enginefailure.cpp
 		follow_target.cpp
 	DEPENDS
+	#DYNAMIC
 		geo
 		landing_slope
 		geofence_breach_avoidance
 		motion_planning
 	)
+
+#target_link_libraries(modules__navigator PUBLIC uORB npfg geofence_breach_avoidance landing_slope motion_planning)
