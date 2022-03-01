@@ -238,27 +238,6 @@ void MulticopterAttitudeControlCustom::run()
 		const float dt = math::constrain(((v_att.timestamp_sample - _last_run) * 1e-6f), 0.0002f, 0.02f);
 		_last_run = v_att.timestamp_sample;
 
-		/* check for updates in other topics */
-		//_manual_control_setpoint_sub.update(&_manual_control_setpoint);
-		//_v_control_mode_sub.update(&_v_control_mode);
-
-		/*if (_vehicle_land_detected_sub.updated()) {
-			vehicle_land_detected_s vehicle_land_detected;
-
-			if (_vehicle_land_detected_sub.copy(&vehicle_land_detected)) {
-				_landed = vehicle_land_detected.landed;
-			}
-		}*/
-
-		/* if (_vehicle_status_sub.updated()) {
-			vehicle_status_s vehicle_status;
-
-			if (_vehicle_status_sub.copy(&vehicle_status)) {
-				_vehicle_type_rotary_wing = (vehicle_status.vehicle_type == vehicle_status_s::VEHICLE_TYPE_ROTARY_WING);
-				_vtol = vehicle_status.is_vtol;
-				_vtol_in_transition_mode = vehicle_status.in_transition_mode;
-			}
-		} */
 
 		bool attitude_setpoint_generated = false;
 
