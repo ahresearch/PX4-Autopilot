@@ -41,6 +41,8 @@
 #include <uORB/topics/sensor_combined.h>
 #include <uORB/topics/vehicle_global_position.h>
 #include <uORB/topics/vehicle_gps_position.h>
+#include <uORB/topics/vehicle_attitude.h>
+#include <uORB/topics/vehicle_attitude_setpoint.h>
 #include <cmath>
 
 /* Sample data structure to pass to thread */
@@ -208,12 +210,14 @@ void CustomModule::run()
 	int pos_sub_fd = orb_subscribe(ORB_ID(vehicle_global_position));
 	int sensor_sub_fd = orb_subscribe(ORB_ID(sensor_combined));
 	int gps_sub_fd = orb_subscribe(ORB_ID(vehicle_gps_position));
+	int att_sub_fd = orb_subscribe(ORB_ID(vehicle_attitude));
     struct vehicle_gps_position_s final_gps_pos;
     static int count = 0;
     px4_pollfd_struct_t fds[] = {
                 { .fd = pos_sub_fd,      .events = POLLIN },
                 { .fd = sensor_sub_fd,   .events = POLLIN },
                 { .fd = gps_sub_fd,      .events = POLLIN },
+		{ .fd = att_sub_fd,      .events = POLLIN },
                 /* there could be more file descriptors here, in the form like:
                  * { .fd = other_sub_fd,   .events = POLLIN },
                  */
@@ -304,6 +308,12 @@ void CustomModule::run()
 			   orb_publish(ORB_ID(vehicle_gps_position),gps_pub, &final_gps_pos);
 
                         }
+
+			if (fds[3].revents & POLLIN) {
+                             struct vehicle_attitude_s v_att;
+			     orb_copy(ORB_ID(vehicle_attitude), att_sub_fd, &v_att);
+
+			}
 
 			// Add your processing here
 			// Create a function in the class and call it
