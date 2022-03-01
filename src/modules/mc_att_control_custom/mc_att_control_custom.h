@@ -64,49 +64,6 @@ using namespace time_literals;
 extern "C" __EXPORT int mc_att_control_custom_main(int argc, char *argv[]);
 
 
-namespace uORB
-{
-// Subscription with callback
-class SubscriptionCallbackMC : public SubscriptionCallback
-{
-public:
-	/**
-	 * Constructor
-	 *
-	 * @param meta The uORB metadata (usually from the ORB_ID() macro) for the topic.
-	 * @param instance The instance for multi sub.
-	 */
-	SubscriptionCallbackMC( const orb_metadata *meta, uint8_t instance = 0) :
-		SubscriptionCallback(meta, 0, instance)	// interval 0,
-
-	{
-	}
-
-	virtual ~SubscriptionCallbackMC() = default;
-
-	void call() override
-	{
-
-	}
-
-	/**
-	 * Optionally limit callback until more samples are available.
-	 *
-	 * @param required_updates Number of queued updates required before a callback can be called.
-	 */
-	void set_required_updates(uint8_t required_updates)
-	{
-		// TODO: constrain to queue depth?
-		_required_updates = required_updates;
-	}
-
-private:
-
-	uint8_t _required_updates{0};
-};
-
-} // End of namespace
-
 
 class MulticopterAttitudeControlCustom : public ModuleBase<MulticopterAttitudeControlCustom>, public ModuleParams
 {
@@ -203,7 +160,7 @@ private:
 	uORB::Subscription _vehicle_status_sub{ORB_ID(vehicle_status)};			/**< vehicle status subscription */
 	uORB::Subscription _vehicle_land_detected_sub{ORB_ID(vehicle_land_detected)};	/**< vehicle land detected subscription */
 
-	uORB::SubscriptionCallbackMC _vehicle_attitude_sub{ ORB_ID(vehicle_attitude)};
+	uORB::Subscription _vehicle_attitude_sub{ ORB_ID(vehicle_attitude)};
 
 	uORB::Publication<vehicle_rates_setpoint_s>	_v_rates_sp_pub{ORB_ID(vehicle_rates_setpoint)};			/**< rate setpoint publication */
 	uORB::Publication<vehicle_attitude_setpoint_s>	_vehicle_attitude_setpoint_pub;

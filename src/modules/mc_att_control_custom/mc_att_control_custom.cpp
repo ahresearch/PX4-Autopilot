@@ -127,17 +127,34 @@ MulticopterAttitudeControlCustom *MulticopterAttitudeControlCustom::instantiate(
 
 void MulticopterAttitudeControlCustom::run()
 {
+
+        int att_setpoint_fd = orb_subscribe(ORB_ID(vehicle_attitude_setpoint));
+        int ctrl_mode_fd = orb_subscribe(ORB_ID(vehicle_control_mode));
+	int auto_att_fd = orb_subscribe(ORB_ID(autotune_attitude_control_status));
+	int man_ctrl_fd = orb_subscribe(ORB_ID(manual_control_setpoint));
+	int vec_status_fd = orb_subscribe(ORB_ID(vehicle_status));
+	int land_sub_fd = orb_subscribe(ORB_ID(vehicle_land_detected));
+	int att_sub_fd = orb_subscribe(ORB_ID(vehicle_attitude));
+	autotune_attitude_control_status_s pid_autotune;
+
+        px4_pollfd_struct_t fds[] = {
+                { .fd = att_setpoint_fd,      .events = POLLIN },
+                { .fd = ctrl_mode_fd,      .events = POLLIN },
+                { .fd = auto_att_fd,      .events = POLLIN },
+                { .fd = man_ctrl_fd,      .events = POLLIN },
+                { .fd = vec_status_fd,      .events = POLLIN },
+                { .fd = land_sub_fd,      .events = POLLIN },
+        	{ .fd = att_sub_fd,      .events = POLLIN },
+        };
+	vehicle_attitude_s v_att;
+
 	while (!should_exit()) {
 
 	if(_to_pause){
 	    continue;
 	}
 
-	if (should_exit()) {
-		_vehicle_attitude_sub.unregisterCallback();
-		exit_and_cleanup();
-		return;
-	}
+
 
 	perf_begin(_loop_perf);
 	// Check if parameters have changed
@@ -149,11 +166,55 @@ void MulticopterAttitudeControlCustom::run()
 		updateParams();
 		parameters_updated();
 	}
+        // wait for up to 1000ms for data
+	int pret = px4_poll(fds, (sizeof(fds) / sizeof(fds[0])), 1000);
 
+
+
+        if (pret == 0) {
+			// Timeout: let the loop run anyway, don't do `continue` here
+	}
+	else if (pret < 0) {
+			// this is undesirable but not much we can do
+			PX4_ERR("poll error %d, %d", pret, errno);
+			px4_usleep(50000);
+			continue;
+
+	} else{
+                        if (fds[0].revents & POLLIN) {
+			   vehicle_attitude_setpoint_s vehicle_attitude_setpoint;
+			   orb_copy(ORB_ID(vehicle_attitude_setpoint), att_setpoint_fd, &vehicle_attitude_setpoint);
+                           _attitude_control.setAttitudeSetpoint(Quatf(vehicle_attitude_setpoint.q_d), vehicle_attitude_setpoint.yaw_sp_move_rate);
+			   _thrust_setpoint_body = Vector3f(vehicle_attitude_setpoint.thrust_body);
+			}
+			if(fds[1].revents & POLLIN) {
+                           orb_copy(ORB_ID(vehicle_control_mode), ctrl_mode_fd,&_v_control_mode);
+			}
+			if(fds[2].revents & POLLIN) {
+			    orb_copy(ORB_ID(autotune_attitude_control_status), auto_att_fd,&pid_autotune);
+			}
+			if(fds[3].revents & POLLIN) {
+                              orb_copy(ORB_ID(manual_control_setpoint), man_ctrl_fd,&_manual_control_setpoint);
+			}
+			if(fds[4].revents & POLLIN) {
+			      vehicle_status_s vehicle_status;
+                              orb_copy(ORB_ID(vehicle_status), vec_status_fd,&vehicle_status);
+			      _vehicle_type_rotary_wing = (vehicle_status.vehicle_type == vehicle_status_s::VEHICLE_TYPE_ROTARY_WING);
+			      _vtol = vehicle_status.is_vtol;
+			      _vtol_in_transition_mode = vehicle_status.in_transition_mode;
+			}
+
+			if(fds[5].revents & POLLIN) {
+                           vehicle_land_detected_s vehicle_land_detected;
+			   orb_copy(ORB_ID(vehicle_land_detected), land_sub_fd,&vehicle_land_detected);
+			   _landed = vehicle_land_detected.landed;
+			}
+
+			if(fds[6].revents & POLLIN) {
+                               orb_copy(ORB_ID(vehicle_attitude), att_sub_fd, &v_att);
+			}
+	}
 	// run controller on attitude updates
-	vehicle_attitude_s v_att;
-
-	if (_vehicle_attitude_sub.update(&v_att)) {
 
 		// Check for new attitude setpoint
 		if (_vehicle_attitude_setpoint_sub.updated()) {
@@ -178,18 +239,18 @@ void MulticopterAttitudeControlCustom::run()
 		_last_run = v_att.timestamp_sample;
 
 		/* check for updates in other topics */
-		_manual_control_setpoint_sub.update(&_manual_control_setpoint);
-		_v_control_mode_sub.update(&_v_control_mode);
+		//_manual_control_setpoint_sub.update(&_manual_control_setpoint);
+		//_v_control_mode_sub.update(&_v_control_mode);
 
-		if (_vehicle_land_detected_sub.updated()) {
+		/*if (_vehicle_land_detected_sub.updated()) {
 			vehicle_land_detected_s vehicle_land_detected;
 
 			if (_vehicle_land_detected_sub.copy(&vehicle_land_detected)) {
 				_landed = vehicle_land_detected.landed;
 			}
-		}
+		}*/
 
-		if (_vehicle_status_sub.updated()) {
+		/* if (_vehicle_status_sub.updated()) {
 			vehicle_status_s vehicle_status;
 
 			if (_vehicle_status_sub.copy(&vehicle_status)) {
@@ -197,7 +258,7 @@ void MulticopterAttitudeControlCustom::run()
 				_vtol = vehicle_status.is_vtol;
 				_vtol_in_transition_mode = vehicle_status.in_transition_mode;
 			}
-		}
+		} */
 
 		bool attitude_setpoint_generated = false;
 
@@ -229,17 +290,15 @@ void MulticopterAttitudeControlCustom::run()
 			Vector3f rates_sp = _attitude_control.update(q);
 
 			const hrt_abstime now = hrt_absolute_time();
-			autotune_attitude_control_status_s pid_autotune;
 
-			if (_autotune_attitude_control_status_sub.copy(&pid_autotune)) {
-				if ((pid_autotune.state == autotune_attitude_control_status_s::STATE_ROLL
+			if ((pid_autotune.state == autotune_attitude_control_status_s::STATE_ROLL
 				     || pid_autotune.state == autotune_attitude_control_status_s::STATE_PITCH
 				     || pid_autotune.state == autotune_attitude_control_status_s::STATE_YAW
 				     || pid_autotune.state == autotune_attitude_control_status_s::STATE_TEST)
 				    && ((now - pid_autotune.timestamp) < 1_s)) {
 					rates_sp += Vector3f(pid_autotune.rate_sp);
-				}
 			}
+
                         if(_to_publish){
 
 			   // publish rate setpoint
@@ -257,13 +316,11 @@ void MulticopterAttitudeControlCustom::run()
 		// reset yaw setpoint during transitions, tailsitter.cpp generates
 		// attitude setpoint for the transition
 		_reset_yaw_sp = !attitude_setpoint_generated || _landed || (_vtol && _vtol_in_transition_mode);
+
+
+	        perf_end(_loop_perf);
 	}
 
-	perf_end(_loop_perf);
-        sleep(1);
-	}
-
-	_vehicle_attitude_sub.unregisterCallback();
 	exit_and_cleanup();
 
 }
@@ -293,11 +350,6 @@ MulticopterAttitudeControlCustom::~MulticopterAttitudeControlCustom()
 bool
 MulticopterAttitudeControlCustom::init()
 {
-	_vehicle_attitude_sub.set_required_updates(1);
-	if (!_vehicle_attitude_sub.registerCallback()) {
-		PX4_ERR("vehicle_attitude callback registration failed!");
-		return false;
-	}
         PX4_WARN("Init MulticopterAttitudeControlCustom");
 	return true;
 }
