@@ -49,6 +49,9 @@
 #include <drivers/drv_hrt.h>
 #include <mathlib/math/Limits.hpp>
 #include <mathlib/math/Functions.hpp>
+#include <chrono>
+#include <iostream>
+
 
 using namespace matrix;
 
@@ -434,6 +437,7 @@ void * MulticopterAttitudeControlBackup::run_diag(void *arg){
 
 bool MulticopterAttitudeControlBackup::get_state(){
 	bool status = true;
+	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 	start_deserialization();
         deser_manual_control_setpoint(&_manual_control_setpoint);
 	deser_v_control_mode(& _v_control_mode);
@@ -452,11 +456,14 @@ bool MulticopterAttitudeControlBackup::get_state(){
 	deser_vtol_in_transition_mode(& _vtol_in_transition_mode);
 	deser_quat_reset_counter(& _quat_reset_counter);
 	stop_deserialization();
+	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        std::cout << "Time to restore state = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs] and " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
         return status;
 }
 
 bool MulticopterAttitudeControlBackup::set_state(){
 	bool status = true;
+        std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 	start_serialization();
         ser_manual_control_setpoint(& _manual_control_setpoint);
 	ser_v_control_mode(& _v_control_mode);
@@ -475,6 +482,8 @@ bool MulticopterAttitudeControlBackup::set_state(){
 	ser_vtol_in_transition_mode(_vtol_in_transition_mode);
 	ser_quat_reset_counter(_quat_reset_counter);
 	stop_serialization();
+	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        std::cout << "Time to save state = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs] and " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
         return status;
 }
 
