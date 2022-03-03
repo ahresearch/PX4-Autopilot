@@ -85,12 +85,29 @@ public:
 
 	bool init();
 
+	static void exit_and_cleanup();
+
+
 private:
 	void Run() override;
 
 	Takeoff _takeoff; /**< state machine and ramp to bring the vehicle off the ground without jumps */
 
 	orb_advert_t _mavlink_log_pub{nullptr};
+
+	static void lock_module()
+	{
+		pthread_mutex_lock(&px4_modules_mutex);
+	}
+
+	/**
+	 * @brief unlock_module Mutex to unlock the module thread.
+	 */
+	static void unlock_module()
+	{
+		pthread_mutex_unlock(&px4_modules_mutex);
+	}
+
 
 	uORB::PublicationData<takeoff_status_s>              _takeoff_status_pub {ORB_ID(takeoff_status)};
 	uORB::Publication<vehicle_attitude_setpoint_s>	     _vehicle_attitude_setpoint_pub {ORB_ID(vehicle_attitude_setpoint)};

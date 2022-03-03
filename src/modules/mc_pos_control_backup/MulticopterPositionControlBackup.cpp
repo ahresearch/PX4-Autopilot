@@ -299,6 +299,23 @@ PositionControlStates MulticopterPositionControlBackup::set_vehicle_states(const
 	return states;
 }
 
+
+void MulticopterPositionControlBackup::exit_and_cleanup()
+{
+	// Take the lock here:
+	// - if startup fails and we're faster than the parent thread, it will set
+	//   _task_id and subsequently it will look like the task is running.
+	// - deleting the object must take place inside the lock.
+	lock_module();
+
+	//delete _object.load();
+	_object.store(nullptr);
+
+	_task_id = -1; // Signal a potentially waiting thread for the module to exit that it can continue.
+	unlock_module();
+}
+
+
 void MulticopterPositionControlBackup::Run()
 {
 	if (should_exit()) {
@@ -502,13 +519,13 @@ void MulticopterPositionControlBackup::Run()
 			vehicle_local_position_setpoint_s local_pos_sp{};
 			_control.getLocalPositionSetpoint(local_pos_sp);
 			local_pos_sp.timestamp = hrt_absolute_time();
-			//_local_pos_sp_pub.publish(local_pos_sp);
+			_local_pos_sp_pub.publish(local_pos_sp);
 
 			// Publish attitude setpoint output
 			vehicle_attitude_setpoint_s attitude_setpoint{};
 			_control.getAttitudeSetpoint(attitude_setpoint);
 			attitude_setpoint.timestamp = hrt_absolute_time();
-			//_vehicle_attitude_setpoint_pub.publish(attitude_setpoint);
+			_vehicle_attitude_setpoint_pub.publish(attitude_setpoint);
 
 		} else {
 			// an update is necessary here because otherwise the takeoff state doesn't get skiped with non-altitude-controlled modes
