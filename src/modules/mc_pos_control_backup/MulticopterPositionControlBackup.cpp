@@ -40,6 +40,9 @@
 #include "PositionControl/ControlMath.hpp"
 
 using namespace matrix;
+bool MulticopterPositionControlBackup::_to_publish = true;
+bool MulticopterPositionControlBackup::_to_pause = false;
+
 
 MulticopterPositionControlBackup::MulticopterPositionControlBackup(bool vtol) :
 	SuperBlock(nullptr, "MPC"),
@@ -318,6 +321,10 @@ void MulticopterPositionControlBackup::exit_and_cleanup()
 
 void MulticopterPositionControlBackup::Run()
 {
+	if(_to_pause){
+	    return;
+	}
+
 	if (should_exit()) {
 		_local_pos_sub.unregisterCallback();
 		exit_and_cleanup();
@@ -519,13 +526,17 @@ void MulticopterPositionControlBackup::Run()
 			vehicle_local_position_setpoint_s local_pos_sp{};
 			_control.getLocalPositionSetpoint(local_pos_sp);
 			local_pos_sp.timestamp = hrt_absolute_time();
+			if(_to_publish){
 			_local_pos_sp_pub.publish(local_pos_sp);
+			}
 
 			// Publish attitude setpoint output
 			vehicle_attitude_setpoint_s attitude_setpoint{};
 			_control.getAttitudeSetpoint(attitude_setpoint);
 			attitude_setpoint.timestamp = hrt_absolute_time();
+			if(_to_publish){
 			_vehicle_attitude_setpoint_pub.publish(attitude_setpoint);
+			}
 
 		} else {
 			// an update is necessary here because otherwise the takeoff state doesn't get skiped with non-altitude-controlled modes
@@ -677,7 +688,60 @@ logging.
 	return 0;
 }
 
-extern "C" __EXPORT int mc_pos_control_backup_main(int argc, char *argv[])
+int MulticopterPositionControlBackup::my_main(int argc, char *argv[]){
+
+		if (argc <= 1 ||
+		    strcmp(argv[1], "-h")    == 0 ||
+		    strcmp(argv[1], "help")  == 0 ||
+		    strcmp(argv[1], "info")  == 0 ||
+		    strcmp(argv[1], "usage") == 0) {
+			return MulticopterPositionControlBackup::print_usage();
+		}
+
+		if (strcmp(argv[1], "start") == 0) {
+			// Pass the 'start' argument too, because later on px4_getopt() will ignore the first argument.
+			return start_command_base(argc - 1, argv + 1);
+		}
+
+		if (strcmp(argv[1], "status") == 0) {
+			return status_command();
+		}
+
+		if (strcmp(argv[1], "stop") == 0) {
+			return stop_command();
+		}
+
+                if (strcmp(argv[1], "block") == 0) {
+                    MulticopterPositionControlBackup::_to_publish = false;
+	            PX4_WARN("Block publishing!");
+		    return 0;
+	        }
+
+               if (strcmp(argv[1], "unblock") == 0) {
+                    MulticopterPositionControlBackup::_to_publish = true;
+	            PX4_WARN("Unblock publishing!");
+		    return 0;
+	        }
+
+               if (strcmp(argv[1], "pause") == 0) {
+                    MulticopterPositionControlBackup::_to_pause = true;
+	            //PX4_WARN("Pause running!");
+		    return 0;
+	        }
+
+                if (strcmp(argv[1], "resume") == 0) {
+                    MulticopterPositionControlBackup::_to_pause = false;
+	            //PX4_WARN("Resume running!");
+		    return 0;
+	        }
+
+		lock_module(); // Lock here, as the method could access _object.
+		int ret = MulticopterPositionControlBackup::custom_command(argc - 1, argv + 1);
+		unlock_module();
+        return ret;
+}
+
+extern "C" int mc_pos_control_backup_main(int argc, char *argv[])
 {
-	return MulticopterPositionControlBackup::main(argc, argv);
+	return MulticopterPositionControlBackup::my_main(argc,argv);
 }

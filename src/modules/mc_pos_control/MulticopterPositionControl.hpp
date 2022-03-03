@@ -87,6 +87,12 @@ public:
 
 	static void exit_and_cleanup();
 
+	static bool _to_publish;
+
+	static bool _to_pause;
+
+	static int my_main(int argc, char *argv[]);
+
 private:
 	void Run() override;
 
