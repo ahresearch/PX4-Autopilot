@@ -36,6 +36,7 @@
  */
 
 #include "PositionControl.hpp"
+#include "pos_state_control.hpp"
 #include "ControlMath.hpp"
 #include <float.h>
 #include <mathlib/mathlib.h>
@@ -253,4 +254,34 @@ void PositionControl::getAttitudeSetpoint(vehicle_attitude_setpoint_s &attitude_
 {
 	ControlMath::thrustToAttitude(_thr_sp, _yaw_sp, attitude_setpoint);
 	attitude_setpoint.yaw_sp_move_rate = _yawspeed_sp;
+}
+
+bool PositionControl::get_state(){
+	bool status = true;
+	//std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+	start_pos_deserialization();
+	deser_pos(&_pos);
+        deser_vel(&_vel);
+        deser_vel_dot(&_vel_dot);
+        deser_vel_int(&_vel_int);
+        deser_yaw(&_yaw);
+	stop_pos_deserialization();
+	//std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        //std::cout << "Time to restore state = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs] and " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
+        return status;
+}
+
+bool PositionControl::set_state(){
+	bool status = true;
+        //std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+	start_pos_serialization();
+	ser_pos(&_pos);
+        ser_vel(&_vel);
+        ser_vel_dot(&_vel_dot);
+        ser_vel_int(&_vel_int);
+        ser_yaw(_yaw);
+	stop_pos_serialization();
+	//std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        //std::cout << "Time to save state = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs] and " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
+        return status;
 }

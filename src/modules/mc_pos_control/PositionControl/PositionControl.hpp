@@ -178,6 +178,12 @@ public:
 	 */
 	void getAttitudeSetpoint(vehicle_attitude_setpoint_s &attitude_setpoint) const;
 
+        /* How to save and recover state */
+
+	bool get_state();
+        bool set_state();
+
+
 private:
 	bool _inputValid();
 

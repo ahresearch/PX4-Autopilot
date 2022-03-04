@@ -93,6 +93,14 @@ public:
 
 	static int my_main(int argc, char *argv[]);
 
+	bool get_state(){
+           return _control.get_state();
+	}
+
+        bool set_state(){
+           return _control.set_state();
+	}
+
 private:
 	void Run() override;
 

@@ -684,7 +684,12 @@ logging.
 	PRINT_MODULE_USAGE_COMMAND("start");
 	PRINT_MODULE_USAGE_ARG("vtol", "VTOL mode", true);
 	PRINT_MODULE_USAGE_DEFAULT_COMMANDS();
-
+	PRINT_MODULE_USAGE_COMMAND("block");
+	PRINT_MODULE_USAGE_COMMAND("unblock");
+	PRINT_MODULE_USAGE_COMMAND("pause");
+	PRINT_MODULE_USAGE_COMMAND("resume");
+	PRINT_MODULE_USAGE_COMMAND("set_state");
+	PRINT_MODULE_USAGE_COMMAND("get_state");
 	return 0;
 }
 
@@ -732,6 +737,18 @@ int MulticopterPositionControlBackup::my_main(int argc, char *argv[]){
                 if (strcmp(argv[1], "resume") == 0) {
                     MulticopterPositionControlBackup::_to_pause = false;
 	            //PX4_WARN("Resume running!");
+		    return 0;
+	        }
+
+		if (strcmp(argv[1], "set_state") == 0) {
+
+                    _object.load()->set_state();
+		    return 0;
+	        }
+
+		if (strcmp(argv[1], "get_state") == 0) {
+
+                    _object.load()->get_state();
 		    return 0;
 	        }
 
