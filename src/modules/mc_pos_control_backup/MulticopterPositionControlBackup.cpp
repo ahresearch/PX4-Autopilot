@@ -311,7 +311,7 @@ void MulticopterPositionControlBackup::exit_and_cleanup()
 	// - deleting the object must take place inside the lock.
 	lock_module();
 
-	//delete _object.load();
+	delete _object.load();
 	_object.store(nullptr);
 
 	_task_id = -1; // Signal a potentially waiting thread for the module to exit that it can continue.
@@ -545,6 +545,7 @@ void MulticopterPositionControlBackup::Run()
 		}
 
 		// Publish takeoff status
+
 		const uint8_t takeoff_state = static_cast<uint8_t>(_takeoff.getTakeoffState());
 
 		if (takeoff_state != _takeoff_status_pub.get().takeoff_state
