@@ -71,20 +71,24 @@ int component_manager_thread(int argc, char *argv[])
 
 	while(!thread_should_exit){
             if(alternate){
-               //PX4_INFO("Starting mc_pos_control!");
-               px4_daemon::Pxh::process_line("mc_pos_control resume",true);
-               //PX4_INFO("Stopping mc_pos_control_backup!");
-               px4_daemon::Pxh::process_line("mc_pos_control_backup pause",true);
+               PX4_INFO("Starting mc_pos_control!");
+               px4_daemon::Pxh::process_line("mc_pos_control_backup set_state",true);
+               px4_daemon::Pxh::process_line("mc_pos_control start",true);
+               px4_daemon::Pxh::process_line("mc_pos_control get_state",true);
+               PX4_INFO("Stopping mc_pos_control_backup!");
+               px4_daemon::Pxh::process_line("mc_pos_control_backup stop",true);
                alternate = false;
             }
             else{
-               //PX4_INFO("Starting mc_pos_control_backup!");
-               px4_daemon::Pxh::process_line("mc_pos_control_backup resume",true);
-               //PX4_INFO("Stopping mc_pos_control_backup!");
-               px4_daemon::Pxh::process_line("mc_pos_control pause",true);
+               PX4_INFO("Starting mc_pos_control_backup!");
+               px4_daemon::Pxh::process_line("mc_pos_control set_state",true);
+               px4_daemon::Pxh::process_line("mc_pos_control_backup start",true);
+               px4_daemon::Pxh::process_line("mc_pos_control_backup get_state",true);
+               PX4_INFO("Stopping mc_pos_control!");
+               px4_daemon::Pxh::process_line("mc_pos_control stop",true);
                alternate = true;
             }
-	    usleep(1000000); // 1 Sec
+	    usleep(10000000); // 10 Sec
 
 	}
 
