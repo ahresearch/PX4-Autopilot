@@ -662,6 +662,7 @@ int MulticopterPositionControl::task_spawn(int argc, char *argv[])
 
 bool MulticopterPositionControl::set_state(){
    start_mc_pos_serialization();
+   ser_takeoff_state(_takeoff.getTakeoffState());
    ser_vehicle_local_position_setpoint( &_setpoint);
    ser_vehicle_control_mode( &_vehicle_control_mode);
    ser_timestamp_last_loop(_time_stamp_last_loop);
@@ -672,6 +673,9 @@ bool MulticopterPositionControl::set_state(){
 
 bool MulticopterPositionControl::get_state(){
    start_mc_pos_deserialization();
+   TakeoffState t_state;
+   deser_takeoff_state(&t_state);
+   _takeoff.setTakeoffState(t_state);
    deser_vehicle_local_position_setpoint(&_setpoint);
    deser_vehicle_control_mode(&_vehicle_control_mode);
    deser_timestamp_last_loop(&_time_stamp_last_loop);

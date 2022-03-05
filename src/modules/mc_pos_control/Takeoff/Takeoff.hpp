@@ -91,6 +91,8 @@ public:
 
 	TakeoffState getTakeoffState() { return _takeoff_state; }
 
+	void setTakeoffState(TakeoffState t_state) {_takeoff_state = t_state;}
+
 private:
 	TakeoffState _takeoff_state = TakeoffState::disarmed;
 

@@ -75,6 +75,7 @@ bool MulticopterPositionControlBackup::init()
 
         PX4_WARN("Init MulticopterPositionControlBackup");
 	_time_stamp_last_loop = hrt_absolute_time();
+	get_state();
 	ScheduleNow();
 
 	return true;
@@ -322,7 +323,6 @@ void MulticopterPositionControlBackup::exit_and_cleanup()
 
 void MulticopterPositionControlBackup::Run()
 {
-	static int first_time_counter = 100;
 	if(_to_pause){
 	    return;
 	}
@@ -524,11 +524,7 @@ void MulticopterPositionControlBackup::Run()
 			// Publish internal position control setpoints
 			// on top of the input/feed-forward setpoints these containt the PID corrections
 			// This message is used by other modules (such as Landdetector) to determine vehicle intention.
-                        if(first_time_counter > 0){
-			    get_state();
-			    first_time_counter--;
-			}
-			vehicle_local_position_setpoint_s local_pos_sp{};
+ 			vehicle_local_position_setpoint_s local_pos_sp{};
 			_control.getLocalPositionSetpoint(local_pos_sp);
 			local_pos_sp.timestamp = hrt_absolute_time();
 			if(_to_publish){
@@ -667,6 +663,7 @@ int MulticopterPositionControlBackup::task_spawn(int argc, char *argv[])
 
 bool MulticopterPositionControlBackup::set_state(){
    start_mc_pos_serialization();
+   ser_takeoff_state(_takeoff.getTakeoffState());
    ser_vehicle_local_position_setpoint( &_setpoint);
    ser_vehicle_control_mode( &_vehicle_control_mode);
    ser_timestamp_last_loop(_time_stamp_last_loop);
@@ -677,6 +674,9 @@ bool MulticopterPositionControlBackup::set_state(){
 
 bool MulticopterPositionControlBackup::get_state(){
    start_mc_pos_deserialization();
+   TakeoffState t_state;
+   deser_takeoff_state(&t_state);
+   _takeoff.setTakeoffState(t_state);
    deser_vehicle_local_position_setpoint(&_setpoint);
    deser_vehicle_control_mode(&_vehicle_control_mode);
    deser_timestamp_last_loop(&_time_stamp_last_loop);

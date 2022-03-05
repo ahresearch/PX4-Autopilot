@@ -68,6 +68,11 @@ void start_mc_pos_serialization(){
     ser_ptr = new bitsery::Serializer<bitsery::OutputBufferedStreamAdapter> (*s_ptr);
 }
 
+void ser_takeoff_state(TakeoffState t_state){
+    ser_ptr->value4b(t_state);
+    std::cout << "t_state: " << (int)t_state <<  std::endl;
+}
+
 void ser_vehicle_local_position_setpoint( vehicle_local_position_setpoint_s * vehicle_local_position_setpoint){
    ser_ptr->object(*vehicle_local_position_setpoint);
    std::cout << "_setpoint: " << vehicle_local_position_setpoint->x <<  " " << vehicle_local_position_setpoint->y << " "
@@ -97,6 +102,11 @@ void stop_mc_pos_serialization(){
 void start_mc_pos_deserialization(){
    s_ptr = new std::fstream {mc_pos_state_file_name, s_ptr->binary | s_ptr->in};
    des_ptr = new bitsery::Deserializer<bitsery::InputStreamAdapter>(*s_ptr);
+}
+
+void deser_takeoff_state(TakeoffState *t_state){
+    des_ptr->value4b(*t_state);
+    std::cout << "t_state: " << (int) *t_state <<  std::endl;
 }
 
 void deser_vehicle_local_position_setpoint(vehicle_local_position_setpoint_s * vehicle_local_position_setpoint){
