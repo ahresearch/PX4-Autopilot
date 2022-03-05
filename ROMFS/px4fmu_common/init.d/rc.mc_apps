@@ -62,13 +62,13 @@ fi
 # Start Multicopter Rate Controller.
 #
 mc_rate_control start
-mc_rate_control_backup start
+#mc_rate_control_backup start
 
 #
 # Start Multicopter Attitude Controller.
 #
 mc_att_control start
-mc_att_control_backup start
+#mc_att_control_backup start
 
 #dyn ./mc_att_control_custom.px4mod start
 
@@ -84,7 +84,7 @@ fi
 mc_hover_thrust_estimator start
 flight_mode_manager start
 mc_pos_control start
-mc_pos_control_backup start
+#mc_pos_control_backup start
 
 #
 # Start Multicopter Land Detector.
