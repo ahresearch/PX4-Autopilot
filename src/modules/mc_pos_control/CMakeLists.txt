@@ -41,6 +41,8 @@ px4_add_module(
 	SRCS
 		MulticopterPositionControl.cpp
 		MulticopterPositionControl.hpp
+		mc_pos_state_control.hpp
+		mc_pos_state_control.cpp
 	DEPENDS
 		PositionControl
 		Takeoff
@@ -48,3 +50,5 @@ px4_add_module(
 		geo
 		SlewRate
 	)
+
+target_include_directories(modules__mc_pos_control PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ../../../../../bitsery/include ../../../build/px4_sitl_default/msg/tmp/headers/)

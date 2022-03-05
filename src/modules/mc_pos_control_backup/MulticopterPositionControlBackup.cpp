@@ -38,6 +38,7 @@
 #include <lib/matrix/matrix/math.hpp>
 #include <px4_platform_common/events.h>
 #include "PositionControl/ControlMath.hpp"
+#include "mc_pos_state_control.hpp"
 
 using namespace matrix;
 bool MulticopterPositionControlBackup::_to_publish = true;
@@ -321,6 +322,7 @@ void MulticopterPositionControlBackup::exit_and_cleanup()
 
 void MulticopterPositionControlBackup::Run()
 {
+	static int first_time_counter = 100;
 	if(_to_pause){
 	    return;
 	}
@@ -477,7 +479,6 @@ void MulticopterPositionControlBackup::Run()
 				_param_mpc_xy_vel_max.get(),
 				math::min(speed_up, _param_mpc_z_vel_max_up.get()), // takeoff ramp starts with negative velocity limit
 				math::max(speed_down, 0.f));
-
 			_control.setInputSetpoint(_setpoint);
 
 			// update states
@@ -523,6 +524,10 @@ void MulticopterPositionControlBackup::Run()
 			// Publish internal position control setpoints
 			// on top of the input/feed-forward setpoints these containt the PID corrections
 			// This message is used by other modules (such as Landdetector) to determine vehicle intention.
+                        if(first_time_counter > 0){
+			    get_state();
+			    first_time_counter--;
+			}
 			vehicle_local_position_setpoint_s local_pos_sp{};
 			_control.getLocalPositionSetpoint(local_pos_sp);
 			local_pos_sp.timestamp = hrt_absolute_time();
@@ -658,6 +663,27 @@ int MulticopterPositionControlBackup::task_spawn(int argc, char *argv[])
 
 	return PX4_ERROR;
 }
+
+
+bool MulticopterPositionControlBackup::set_state(){
+   start_mc_pos_serialization();
+   ser_vehicle_local_position_setpoint( &_setpoint);
+   ser_vehicle_control_mode( &_vehicle_control_mode);
+   ser_timestamp_last_loop(_time_stamp_last_loop);
+   stop_mc_pos_serialization();
+   return _control.set_state();
+}
+
+
+bool MulticopterPositionControlBackup::get_state(){
+   start_mc_pos_deserialization();
+   deser_vehicle_local_position_setpoint(&_setpoint);
+   deser_vehicle_control_mode(&_vehicle_control_mode);
+   deser_timestamp_last_loop(&_time_stamp_last_loop);
+   stop_mc_pos_deserialization();
+   return _control.get_state();
+}
+
 
 int MulticopterPositionControlBackup::custom_command(int argc, char *argv[])
 {

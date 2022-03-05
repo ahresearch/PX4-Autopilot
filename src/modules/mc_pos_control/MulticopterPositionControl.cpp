@@ -38,6 +38,7 @@
 #include <lib/matrix/matrix/math.hpp>
 #include <px4_platform_common/events.h>
 #include "PositionControl/ControlMath.hpp"
+#include "mc_pos_state_control.hpp"
 
 using namespace matrix;
 
@@ -656,6 +657,28 @@ int MulticopterPositionControl::task_spawn(int argc, char *argv[])
 
 	return PX4_ERROR;
 }
+
+
+
+bool MulticopterPositionControl::set_state(){
+   start_mc_pos_serialization();
+   ser_vehicle_local_position_setpoint( &_setpoint);
+   ser_vehicle_control_mode( &_vehicle_control_mode);
+   ser_timestamp_last_loop(_time_stamp_last_loop);
+   stop_mc_pos_serialization();
+   return _control.set_state();
+}
+
+
+bool MulticopterPositionControl::get_state(){
+   start_mc_pos_deserialization();
+   deser_vehicle_local_position_setpoint(&_setpoint);
+   deser_vehicle_control_mode(&_vehicle_control_mode);
+   deser_timestamp_last_loop(&_time_stamp_last_loop);
+   stop_mc_pos_deserialization();
+   return _control.get_state();
+}
+
 
 int MulticopterPositionControl::custom_command(int argc, char *argv[])
 {
