@@ -6,6 +6,8 @@
 
 #include "pos_state_control.hpp"
 
+//#define DEBUG_PRINT
+
 auto pos_state_file_name = "pos_control.bin";
 static std::fstream * s_ptr;
 static bitsery::Serializer<bitsery::OutputBufferedStreamAdapter> * ser_ptr;
@@ -18,7 +20,9 @@ void start_pos_serialization(){
 
 void ser_hover_thrust(float hover_thrust){
     ser_ptr->value4b(hover_thrust);
+    #ifdef DEBUG_PRINT
     std::cout << "ser_hover_thrust: " << hover_thrust <<  std::endl;
+    #endif
 }
 
 void ser_pos(matrix::Vector3f * pos){
@@ -27,7 +31,9 @@ void ser_pos(matrix::Vector3f * pos){
    ser_ptr->value4b(arr[0]);
    ser_ptr->value4b(arr[1]);
    ser_ptr->value4b(arr[2]);
+   #ifdef DEBUG_PRINT
    std::cout << "ser_pos: " << arr[0] << " " << arr[1] << " " << arr[2] <<  std::endl;
+   #endif
 }
 
 
@@ -37,7 +43,9 @@ void ser_vel(matrix::Vector3f * vel){
    ser_ptr->value4b(arr[0]);
    ser_ptr->value4b(arr[1]);
    ser_ptr->value4b(arr[2]);
+   #ifdef DEBUG_PRINT
    std::cout << "ser_vel: " << arr[0] << " "  << arr[1] << " "  << arr[2] <<  std::endl;
+   #endif
 }
 
 
@@ -47,7 +55,9 @@ void ser_vel_dot(matrix::Vector3f * vel_dot){
    ser_ptr->value4b(arr[0]);
    ser_ptr->value4b(arr[1]);
    ser_ptr->value4b(arr[2]);
+   #ifdef DEBUG_PRINT
    std::cout << "ser_vel_dot: " << arr[0] << " "  << arr[1] << " "  << arr[2] <<  std::endl;
+   #endif
 }
 
 
@@ -57,13 +67,17 @@ void ser_vel_int(matrix::Vector3f * vel_int){
    ser_ptr->value4b(arr[0]);
    ser_ptr->value4b(arr[1]);
    ser_ptr->value4b(arr[2]);
+   #ifdef DEBUG_PRINT
    std::cout << "ser_vel_int: " << arr[0] << " "  << arr[1] << " "  << arr[2] <<  std::endl;
+   #endif
 }
 
 
 void ser_yaw(float yaw){
     ser_ptr->value4b(yaw);
+    #ifdef DEBUG_PRINT
     std::cout << "ser_yaw: " << yaw <<  std::endl;
+    #endif
 }
 
 void ser_pos_sp(matrix::Vector3f * pos_sp){
@@ -72,7 +86,9 @@ void ser_pos_sp(matrix::Vector3f * pos_sp){
    ser_ptr->value4b(arr[0]);
    ser_ptr->value4b(arr[1]);
    ser_ptr->value4b(arr[2]);
+   #ifdef DEBUG_PRINT
    std::cout << "ser_pos_sp: " << arr[0] << " " << arr[1] << " " << arr[2] <<  std::endl;
+   #endif
 }
 
 void ser_vel_sp(matrix::Vector3f * vel_sp){
@@ -81,7 +97,9 @@ void ser_vel_sp(matrix::Vector3f * vel_sp){
    ser_ptr->value4b(arr[0]);
    ser_ptr->value4b(arr[1]);
    ser_ptr->value4b(arr[2]);
+   #ifdef DEBUG_PRINT
    std::cout << "ser_vel_sp: " << arr[0] << " " << arr[1] << " " << arr[2] <<  std::endl;
+   #endif
 }
 
 void ser_acc_sp(matrix::Vector3f * acc_sp){
@@ -90,7 +108,9 @@ void ser_acc_sp(matrix::Vector3f * acc_sp){
    ser_ptr->value4b(arr[0]);
    ser_ptr->value4b(arr[1]);
    ser_ptr->value4b(arr[2]);
+   #ifdef DEBUG_PRINT
    std::cout << "ser_acc_sp: " << arr[0] << " " << arr[1] << " " << arr[2] <<  std::endl;
+   #endif
 }
 
 void ser_thr_sp(matrix::Vector3f * thr_sp){
@@ -99,17 +119,23 @@ void ser_thr_sp(matrix::Vector3f * thr_sp){
    ser_ptr->value4b(arr[0]);
    ser_ptr->value4b(arr[1]);
    ser_ptr->value4b(arr[2]);
+   #ifdef DEBUG_PRINT
    std::cout << "ser_thr_sp: " << arr[0] << " " << arr[1] << " " << arr[2] <<  std::endl;
+   #endif
 }
 
 void ser_yaw_sp(float yaw_sp){
     ser_ptr->value4b(yaw_sp);
+    #ifdef DEBUG_PRINT
     std::cout << "ser_yaw_sp: " << yaw_sp <<  std::endl;
+    #endif
 }
 
 void ser_yaw_speed_sp(float yaw_speed_sp){
     ser_ptr->value4b(yaw_speed_sp);
+    #ifdef DEBUG_PRINT
     std::cout << "ser_yaw_sp: " << yaw_speed_sp <<  std::endl;
+    #endif
 }
 
 void stop_pos_serialization(){
@@ -128,7 +154,9 @@ void start_pos_deserialization(){
 
 void deser_hover_thrust(float * hover_thrust){
     des_ptr->value4b(*hover_thrust);
+    #ifdef DEBUG_PRINT
     std::cout << "deser_hover_thrust: " << *hover_thrust <<  std::endl;
+    #endif
 }
 
 void deser_pos(matrix::Vector3f * pos){
@@ -136,7 +164,9 @@ void deser_pos(matrix::Vector3f * pos){
    des_ptr->value4b(arr[0]);
    des_ptr->value4b(arr[1]);
    des_ptr->value4b(arr[2]);
+   #ifdef DEBUG_PRINT
    std::cout << "deser_pos: " << arr[0] << " "  << arr[1] << " " << arr[2] <<  std::endl;
+   #endif
    matrix::Vector3f m(arr[0],arr[1],arr[2]);
    *pos = m;
 }
@@ -146,7 +176,9 @@ void deser_vel(matrix::Vector3f * vel){
    des_ptr->value4b(arr[0]);
    des_ptr->value4b(arr[1]);
    des_ptr->value4b(arr[2]);
+   #ifdef DEBUG_PRINT
    std::cout << "deser_vel: " << arr[0] << " " << arr[1] << " " << arr[2] <<  std::endl;
+   #endif
    matrix::Vector3f m(arr[0],arr[1],arr[2]);
    *vel = m;
 }
@@ -156,7 +188,9 @@ void deser_vel_dot(matrix::Vector3f * vel_dot){
    des_ptr->value4b(arr[0]);
    des_ptr->value4b(arr[1]);
    des_ptr->value4b(arr[2]);
+   #ifdef DEBUG_PRINT
    std::cout << "deser_vel_dot: " << arr[0] << " " << arr[1] << " " << arr[2] <<  std::endl;
+   #endif
    matrix::Vector3f m(arr[0],arr[1],arr[2]);
    *vel_dot = m;
 }
@@ -166,14 +200,18 @@ void deser_vel_int(matrix::Vector3f * vel_int){
    des_ptr->value4b(arr[0]);
    des_ptr->value4b(arr[1]);
    des_ptr->value4b(arr[2]);
+   #ifdef DEBUG_PRINT
    std::cout << "deser_vel_int: " << arr[0] << " " << arr[1] << " " << arr[2] <<  std::endl;
+   #endif
    matrix::Vector3f m(arr[0],arr[1],arr[2]);
    *vel_int = m;
 }
 
 void deser_yaw(float * yaw){
     des_ptr->value4b(*yaw);
+    #ifdef DEBUG_PRINT
     std::cout << "deser_yaw: " << *yaw <<  std::endl;
+    #endif
 }
 
 
@@ -182,7 +220,9 @@ void deser_pos_sp(matrix::Vector3f * pos_sp){
    des_ptr->value4b(arr[0]);
    des_ptr->value4b(arr[1]);
    des_ptr->value4b(arr[2]);
+   #ifdef DEBUG_PRINT
    std::cout << "deser_pos_sp: " << arr[0] << " "  << arr[1] << " " << arr[2] <<  std::endl;
+   #endif
    matrix::Vector3f m(arr[0],arr[1],arr[2]);
    *pos_sp = m;
 }
@@ -192,7 +232,9 @@ void deser_vel_sp(matrix::Vector3f * vel_sp){
    des_ptr->value4b(arr[0]);
    des_ptr->value4b(arr[1]);
    des_ptr->value4b(arr[2]);
+   #ifdef DEBUG_PRINT
    std::cout << "deser_vel_sp: " << arr[0] << " "  << arr[1] << " " << arr[2] <<  std::endl;
+   #endif
    matrix::Vector3f m(arr[0],arr[1],arr[2]);
    *vel_sp = m;
 }
@@ -202,7 +244,9 @@ void deser_acc_sp(matrix::Vector3f * acc_sp){
    des_ptr->value4b(arr[0]);
    des_ptr->value4b(arr[1]);
    des_ptr->value4b(arr[2]);
+   #ifdef DEBUG_PRINT
    std::cout << "deser_acc_sp: " << arr[0] << " "  << arr[1] << " " << arr[2] <<  std::endl;
+   #endif
    matrix::Vector3f m(arr[0],arr[1],arr[2]);
    *acc_sp = m;
 }
@@ -212,7 +256,9 @@ void deser_thr_sp(matrix::Vector3f * thr_sp){
    des_ptr->value4b(arr[0]);
    des_ptr->value4b(arr[1]);
    des_ptr->value4b(arr[2]);
+   #ifdef DEBUG_PRINT
    std::cout << "deser_thr_sp: " << arr[0] << " "  << arr[1] << " " << arr[2] <<  std::endl;
+   #endif
    matrix::Vector3f m(arr[0],arr[1],arr[2]);
    *thr_sp = m;
 }
@@ -220,12 +266,16 @@ void deser_thr_sp(matrix::Vector3f * thr_sp){
 
 void deser_yaw_sp(float * yaw_sp){
     des_ptr->value4b(*yaw_sp);
+    #ifdef DEBUG_PRINT
     std::cout << "deser_yaw_sp: " << *yaw_sp <<  std::endl;
+    #endif
 }
 
 void deser_yaw_speed_sp(float * yaw_speed_sp){
     des_ptr->value4b(*yaw_speed_sp);
+    #ifdef DEBUG_PRINT
     std::cout << "deser_yaw_speed_sp: " << *yaw_speed_sp <<  std::endl;
+    #endif
 }
 
 

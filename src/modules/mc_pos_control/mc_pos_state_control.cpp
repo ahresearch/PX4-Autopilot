@@ -14,6 +14,7 @@ static std::fstream * s_ptr;
 static bitsery::Serializer<bitsery::OutputBufferedStreamAdapter> * ser_ptr;
 static bitsery::Deserializer<bitsery::InputStreamAdapter> *des_ptr;
 
+//#define DEBUG_PRINT
 
 template <typename S>
 void serialize(S& s, vehicle_local_position_setpoint_s & o) {
@@ -70,25 +71,33 @@ void start_mc_pos_serialization(){
 
 void ser_takeoff_state(TakeoffState t_state){
     ser_ptr->value4b(t_state);
+    #ifdef DEBUG_PRINT
     std::cout << "t_state: " << (int)t_state <<  std::endl;
+    #endif
 }
 
 void ser_vehicle_local_position_setpoint( vehicle_local_position_setpoint_s * vehicle_local_position_setpoint){
    ser_ptr->object(*vehicle_local_position_setpoint);
+   #ifdef DEBUG_PRINT
    std::cout << "_setpoint: " << vehicle_local_position_setpoint->x <<  " " << vehicle_local_position_setpoint->y << " "
              <<  vehicle_local_position_setpoint->z << " " << vehicle_local_position_setpoint->yaw << std::endl;
+   #endif
 }
 
 
 void ser_vehicle_control_mode( vehicle_control_mode_s * vehicle_control_mode){
    ser_ptr->object(*vehicle_control_mode);
+   #ifdef DEBUG_PRINT
    std::cout << "_vehicle_control_mode : " << vehicle_control_mode->flag_armed <<  " " << vehicle_control_mode->flag_multicopter_position_control_enabled
                <<  " " <<   vehicle_control_mode->flag_control_manual_enabled <<  " " <<  vehicle_control_mode->flag_control_auto_enabled << std::endl;
+   #endif
 }
 
 void ser_timestamp_last_loop(uint64_t timestamp_last_loop){
     ser_ptr->value8b(timestamp_last_loop);
+    #ifdef DEBUG_PRINT
     std::cout << "ser_timestamp_last_loop: " << timestamp_last_loop <<  std::endl;
+    #endif
 }
 
 void stop_mc_pos_serialization(){
@@ -106,24 +115,32 @@ void start_mc_pos_deserialization(){
 
 void deser_takeoff_state(TakeoffState *t_state){
     des_ptr->value4b(*t_state);
+    #ifdef DEBUG_PRINT
     std::cout << "t_state: " << (int) *t_state <<  std::endl;
+    #endif
 }
 
 void deser_vehicle_local_position_setpoint(vehicle_local_position_setpoint_s * vehicle_local_position_setpoint){
     bitsery::quickDeserialization<bitsery::InputStreamAdapter>(*s_ptr, *vehicle_local_position_setpoint);
+   #ifdef DEBUG_PRINT
    std::cout << "_setpoint: " << vehicle_local_position_setpoint->x <<  " " << vehicle_local_position_setpoint->y << " "
              <<  vehicle_local_position_setpoint->z << " " << vehicle_local_position_setpoint->yaw << std::endl;
+   #endif
 }
 
 void deser_vehicle_control_mode(vehicle_control_mode_s * vehicle_control_mode){
     bitsery::quickDeserialization<bitsery::InputStreamAdapter>(*s_ptr, *vehicle_control_mode);
+    #ifdef DEBUG_PRINT
     std::cout << "_vehicle_control_mode : " << vehicle_control_mode->flag_armed <<  " " << vehicle_control_mode->flag_multicopter_position_control_enabled
                <<  " " <<   vehicle_control_mode->flag_control_manual_enabled <<  " " <<  vehicle_control_mode->flag_control_auto_enabled << std::endl;
+    #endif
 }
 
 void deser_timestamp_last_loop(uint64_t *timestamp_last_loop){
     des_ptr->value8b(*timestamp_last_loop);
+    #ifdef DEBUG_PRINT
     std::cout << "deser_timestamp_last_loop: " << *timestamp_last_loop <<  std::endl;
+    #endif
 }
 
 

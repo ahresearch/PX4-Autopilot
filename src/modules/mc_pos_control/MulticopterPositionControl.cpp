@@ -74,6 +74,7 @@ bool MulticopterPositionControl::init()
 	}
 
 	_time_stamp_last_loop = hrt_absolute_time();
+	get_state();
 	ScheduleNow();
 
 	return true;

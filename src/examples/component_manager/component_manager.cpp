@@ -71,20 +71,26 @@ int component_manager_thread(int argc, char *argv[])
 
 	while(!thread_should_exit){
             if(alternate){
+               px4_daemon::Pxh::process_line("mc_pos_control set_state",true);
                PX4_INFO("Starting mc_pos_control_backup!");
+               usleep(300000);
                px4_daemon::Pxh::process_line("mc_pos_control_backup start",true);
                PX4_INFO("Stopping mc_pos_control!");
+               usleep(300000);
                px4_daemon::Pxh::process_line("mc_pos_control stop",true);
                alternate = false;
             }
             else{
+               px4_daemon::Pxh::process_line("mc_pos_control_backup set_state",true);
                PX4_INFO("Starting mc_pos_control!");
+               usleep(300000);
                px4_daemon::Pxh::process_line("mc_pos_control start",true);
                PX4_INFO("Stopping mc_pos_control_backup!");
+               usleep(300000);
                px4_daemon::Pxh::process_line("mc_pos_control_backup stop",true);
                alternate = true;
             }
-	    usleep(1000000); // 1 Sec
+	    usleep(500000); // 1 Sec
 
 	}
 
