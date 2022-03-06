@@ -90,7 +90,7 @@ int component_manager_thread(int argc, char *argv[])
                px4_daemon::Pxh::process_line("mc_pos_control_backup stop",true);
                alternate = true;
             }
-	    usleep(500000); // 1 Sec
+	    usleep(300000); // 0.3 Sec
 
 	}
 
